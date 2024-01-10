@@ -13,8 +13,8 @@ func TestDecodeHexToBigInt(t *testing.T) {
 	}{
 		{
 			name:     "HappyPath",
-			inputHex: "0x000000000000000000000000000000000000000000000000000000000000d431",
-			want:     new(big.Int).SetInt64(54321),
+			inputHex: "0x0000000000000000000000000000000000000000000000000000000000467390",
+			want:     new(big.Int).SetInt64(4617104),
 		},
 		{
 			name:     "Zero",
@@ -36,7 +36,7 @@ func TestDecodeHexToBigInt(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := DecodeHexToBigInt(tc.inputHex)
 			if got.Cmp(tc.want) != 0 {
-				t.Errorf("DecodeHexToBigInt() = %q, want %q", got.String(), tc.want.String())
+				t.Errorf("Failing Test Name: %q - DecodeHexToBigInt() = %q, want %q", tc.name, got.String(), tc.want.String())
 			}
 		})
 	}
