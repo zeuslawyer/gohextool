@@ -1,10 +1,13 @@
 package encdec
 
 import (
+	"fmt"
 	"math/big"
+	"regexp"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 /*
@@ -25,4 +28,33 @@ func DecodeHexToBigInt(hex string) *big.Int {
 
 	bigInt := hexutil.MustDecodeBig("0x" + trimmed)
 	return bigInt
+}
+
+// TODO: @zeuslawyer resume here.
+func FunctionSelector(funcSig string) string {
+
+	validate := func(sig string) error {
+		re := regexp.MustCompile(`^(\w+)`) // match the first word in a given string
+		matches := re.FindStringSubmatch(sig)
+
+		if len(matches) < 2 {
+			return fmt.Errorf("unable to extract function name from signature: %s", sig)
+		}
+
+		// validate signature format
+		signatureRegex := regexp.MustCompile(`^\w+\([^\)]*\)$`)
+		if !signatureRegex.MatchString(sig) {
+			return fmt.Errorf("\n%q is not a valid function signature", sig)
+		}
+
+		return nil
+	}
+
+	if err := validate(funcSig); err != nil {
+		panic(err)
+	}
+
+	funcSigHash := crypto.Keccak256Hash([]byte(funcSig))
+	selector := funcSigHash.String()[:10] //4 bytes ==8 characters, plus "0x"
+	return selector
 }
