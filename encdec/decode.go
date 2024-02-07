@@ -33,7 +33,8 @@ func DecodeHexToBigInt(hex string) *big.Int {
 // TODO: @zeuslawyer resume here.
 func FunctionSelector(funcSig string) string {
 
-	validate := func(sig string) error {
+
+	validateInput := func(sig string) error {
 		re := regexp.MustCompile(`^(\w+)`) // match the first word in a given string
 		matches := re.FindStringSubmatch(sig)
 
@@ -50,7 +51,7 @@ func FunctionSelector(funcSig string) string {
 		return nil
 	}
 
-	if err := validate(funcSig); err != nil {
+	if err := validateInput(funcSig); err != nil {
 		panic(err)
 	}
 
