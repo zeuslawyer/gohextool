@@ -2,19 +2,63 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 
-	"github.com/zeuslawyer/gohextool/encdec"
+	cli "github.com/urfave/cli/v2"
+	"github.com/zeuslawyer/hextool/encdec"
+	"github.com/zeuslawyer/hextool/internal/flags"
 )
 
 const (
-	testStringHex = "0x476f20466f727468202620436f6e717565722c20486f6d696521"
+	testStringHex = "0x22596f75277665206265656e2048657865642122"
 	testBigIntHex = "0xd431"
 )
 
 func main() {
-	str := encdec.DecodeHexToString(testStringHex)
-	fmt.Println("result string : ", str)
+	app := cli.NewApp()
+	app.Name = "hextool"
+	app.Description = "A cli tool to help you encode and decode hex strings"
 
-	bigInt := encdec.DecodeHexToBigInt(testBigIntHex)
-	fmt.Println("result big int : ", bigInt)
+	app.Commands = []*cli.Command{
+		{
+			Name:    "tostring",
+			Aliases: []string{""},
+			Usage:   "decode a hex string to string",
+			Action: func(cliCtx *cli.Context) error {
+				fmt.Print(encdec.DecodeHexToString(cliCtx.String("hex")))
+				return nil
+			},
+			Flags: []cli.Flag{
+				flags.CommandFlags["hex"],
+			},
+		},
+	}
+
+	// app := &cli.App{
+	// 	Name:        "hextool - A hex string encoding and decoding tool",
+	// 	Description: "A cli tool to help you encode and decode hex strings",
+	// 	Commands: []*cli.Command{
+	// {
+	// 	Name:    "tostring",
+	// 	Aliases: []string{""},
+	// 	Usage:   "decode a hex string to string",
+	// 	Action: func(cliCtx *cli.Context) error {
+	// 		if cliCtx.String("hex") == "0x" {
+	// 			log.Print("No hex string provide. Please provide a hex string using the --hex flag")
+	// 		}
+
+	// 		fmt.Print(encdec.DecodeHexToString(cliCtx.String("hex")))
+	// 		return nil
+	// 	},
+	// 	Flags: []cli.Flag{
+	// 		flags.CommandFlags["hex"],
+	// 	},
+	// },
+	// 	},
+	// }
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
