@@ -2,6 +2,7 @@ package encdec
 
 import (
 	"math/big"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -11,6 +12,7 @@ func TestDecodeHexToBigInt(t *testing.T) {
 		name     string
 		inputHex string
 		want     *big.Int
+		panics   bool
 	}{
 		{
 			name:     "HappyPath",
@@ -18,27 +20,48 @@ func TestDecodeHexToBigInt(t *testing.T) {
 			want:     new(big.Int).SetInt64(4617104),
 		},
 		{
+			name:     "Empty",
+			inputHex: "0x",
+			want:     new(big.Int).SetInt64(0),
+			panics:   true,
+		},
+		{
 			name:     "Zero",
 			inputHex: "0x00",
 			want:     new(big.Int).SetInt64(0),
 		},
 		{
-			name:     "Empty",
-			inputHex: "0x",
-			want:     new(big.Int).SetInt64(0),
+			name:     "NegativeNum",
+			inputHex: "0x" + strconv.FormatInt(-1981, 16), // "0x-7bd"
+			want:     new(big.Int).SetInt64(-1981),
 		},
-		// { // TODO @zeuslawyer
-		// 	name:     "NegativeNum",
-		// 	inputHex: "0xF843",
-		// 	want:     new(big.Int).SetInt64(-1981),
-		// },
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got := DecodeHexToBigInt(tc.inputHex)
-			if got.Cmp(tc.want) != 0 {
-				t.Errorf("Failing Test Name: %q - DecodeHexToBigInt() = %q, want %q", tc.name, got.String(), tc.want.String())
+			if tc.panics {
+				defer func() {
+					if r := recover(); r != nil {
+						// Check if the panic value is as expected
+						errorString := r.(string)
+						wantErrorSubString := "\"0x\" provided as --hex input"
+
+						if strings.Contains(errorString, wantErrorSubString) == false {
+							t.Errorf("Expected panic message to contain: %s, got: %v", wantErrorSubString, errorString)
+						}
+					} else {
+						// The function did not panic as expected
+						t.Error("Expected the function to panic, but it did not")
+					}
+				}()
+
+				DecodeHexToBigInt(tc.inputHex)
+			} else {
+				got := DecodeHexToBigInt(tc.inputHex)
+				if got.Cmp(tc.want) != 0 {
+					t.Errorf("Failing Test Name: %q - DecodeHexToBigInt() = %q, want %q", tc.name, got.String(), tc.want.String())
+				}
 			}
+
 		})
 	}
 }
@@ -52,17 +75,17 @@ func TestDecodeHexToString(t *testing.T) {
 		{
 			name:     "HappyPath",
 			inputHex: "0x476f20466f727468202620436f6e717565722c20486f6d696521",
-			want:     "Go Forth & Conquer, Homie!",
+			want:     "Go Forth & Conquer, Homie!" + "\n",
 		},
 		{
 			name:     "NumberAsString",
 			inputHex: "0x3432",
-			want:     "42",
+			want:     "42" + "\n",
 		},
 		{
 			name:     "EmptyBytes",
 			inputHex: "0x",
-			want:     "",
+			want:     "" + "\n",
 		},
 	}
 	for _, tc := range tests {

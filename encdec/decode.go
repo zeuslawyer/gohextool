@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"regexp"
-	"strings"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -15,24 +15,46 @@ import (
  */
 func DecodeHexToString(hex string) string {
 	bytes := hexutil.MustDecode(hex)
-	return string(bytes)
+	return string(bytes) + "\n" // concat newlines so that returned output in terminal pushes terminal prompt "%" to new line.
 }
 
+// func DecodeHexToBigInt(hex string) *big.Int {
+// 	if (len(hex) == 0) || (hex == "0x") || (hex == "0x00") {
+// 		return new(big.Int).SetInt64(0)
+// 	}
+// 	// hexutil requires that integers are encoded using the least amount of digits (no leading zero digits).
+// 	hexWithoutPrefix := hex[2:]
+// 	trimmed := strings.TrimLeft(hexWithoutPrefix, "0")
+
+// 	bigInt := hexutil.MustDecodeBig("0x" + trimmed)
+// 	return bigInt
+// }
+
 func DecodeHexToBigInt(hex string) *big.Int {
-	if (len(hex) == 0) || (hex == "0x") || (hex == "0x00") {
+	if hex == "0x" {
+		panic(fmt.Sprintf("%q provided as --hex input", hex))
+	}
+
+	if (len(hex) == 0) || (hex == "0x00") {
 		return new(big.Int).SetInt64(0)
 	}
-	// hexutil requires that integers are encoded using the least amount of digits (no leading zero digits).
-	hexWithoutPrefix := hex[2:]
-	trimmed := strings.TrimLeft(hexWithoutPrefix, "0")
 
-	bigInt := hexutil.MustDecodeBig("0x" + trimmed)
-	return bigInt
+	hexWithoutPrefix := hex[2:]
+	// hexutil requires that integers are encoded using the least amount of digits (no leading zero digits).
+	// trimmed := strings.TrimLeft(hexWithoutPrefix, "0")
+
+	num, err := strconv.ParseInt(hexWithoutPrefix, 16, 64)
+	if err != nil {
+		panic(err)
+	}
+	return new(big.Int).SetInt64(num)
+
+	// bigInt := hexutil.MustDecodeBig("0x" + trimmed)
+	// return bigInt
 }
 
 // TODO: @zeuslawyer resume here.
 func FunctionSelector(funcSig string) string {
-
 
 	validateInput := func(sig string) error {
 		re := regexp.MustCompile(`^(\w+)`) // match the first word in a given string
