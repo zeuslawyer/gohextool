@@ -19,14 +19,25 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "hextool"
 	app.Description = "A cli tool to help you encode and decode hex strings"
-
 	app.Commands = []*cli.Command{
 		{
 			Name:    "tostring",
-			Aliases: []string{""},
+			Aliases: []string{"getstring"},
 			Usage:   "decode a hex string to string",
 			Action: func(cliCtx *cli.Context) error {
-				fmt.Print(encdec.DecodeHexToString(cliCtx.String("hex")))
+				fmt.Printf("%v\n", encdec.DecodeHexToString(cliCtx.String("hex")))
+				return nil
+			},
+			Flags: []cli.Flag{
+				flags.CommandFlags["hex"],
+			},
+		},
+		{
+			Name:    "toint",
+			Aliases: []string{"getint"},
+			Usage:   "decode a hex string to int",
+			Action: func(cliCtx *cli.Context) error {
+				fmt.Printf("%v\n", encdec.DecodeHexToBigInt(cliCtx.String("hex")))
 				return nil
 			},
 			Flags: []cli.Flag{
@@ -34,29 +45,6 @@ func main() {
 			},
 		},
 	}
-
-	// app := &cli.App{
-	// 	Name:        "hextool - A hex string encoding and decoding tool",
-	// 	Description: "A cli tool to help you encode and decode hex strings",
-	// 	Commands: []*cli.Command{
-	// {
-	// 	Name:    "tostring",
-	// 	Aliases: []string{""},
-	// 	Usage:   "decode a hex string to string",
-	// 	Action: func(cliCtx *cli.Context) error {
-	// 		if cliCtx.String("hex") == "0x" {
-	// 			log.Print("No hex string provide. Please provide a hex string using the --hex flag")
-	// 		}
-
-	// 		fmt.Print(encdec.DecodeHexToString(cliCtx.String("hex")))
-	// 		return nil
-	// 	},
-	// 	Flags: []cli.Flag{
-	// 		flags.CommandFlags["hex"],
-	// 	},
-	// },
-	// 	},
-	// }
 
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
