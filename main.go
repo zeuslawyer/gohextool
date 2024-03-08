@@ -44,6 +44,8 @@ func main() {
 				flags.CommandFlags["hex"],
 			},
 		},
+
+		// TODO zeuslawyer: add selector commands
 	}
 
 	if err := app.Run(os.Args); err != nil {

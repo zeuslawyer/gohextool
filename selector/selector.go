@@ -2,6 +2,8 @@ package selector
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -14,8 +16,8 @@ import (
 // Calculates the function selector given function signature `funcSig`.
 // The function signature should be in the form of `functionName(type1,type2,...)`.
 // Eg: "transfer(address,uint256)"
-func FunctionSelector(funcSig string) string {
-
+func SelectorFromSig(funcSig string) string {
+	// TODO @zeuslawyer change to use the abi packages Method type
 	validateInput := func(sig string) error {
 		re := regexp.MustCompile(`^(\w+)`) // match the first word in a given string
 		matches := re.FindStringSubmatch(sig)
@@ -42,18 +44,45 @@ func FunctionSelector(funcSig string) string {
 	return selector
 }
 
-func abiFromSelector(selector string, path string) string {
+// Given a function selector, returns the function signature from provided ABI file and path
+// or from a URL.  If both are provided it will default to using the file path.
+func SigFromSelector(selector string, abiPath string, abiUrl string) string {
+	if abiPath == "" && abiUrl == "" {
+		panic(fmt.Errorf("abiPath and url cannot both be empty"))
+	}
+
 	selectorBytes := hexutil.MustDecode(selector)
 
-	abiJson, err := os.ReadFile(path)
-	if err != nil {
-		fmt.Println("Error reading file")
-		panic(err)
+	var abiJson []byte
+	var abiSource string
+	if abiPath != "" {
+		abiSource = abiPath
+		file, err := os.ReadFile(abiSource)
+		if err != nil {
+			fmt.Println("Error reading file")
+			panic(err)
+		}
+
+		abiJson = file
+	} else {
+		abiSource = abiUrl
+		resp, err := http.Get(abiUrl)
+		if err != nil {
+			fmt.Printf("Error fetching ABI file from url %s", abiUrl)
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		abiJson, err = io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Error reading ABI from http response")
+			panic(err)
+		}
 	}
 
 	parsedAbi, err := abi.JSON(strings.NewReader(string(abiJson)))
 	if err != nil {
-		fmt.Println("Error parsing ABI")
+		fmt.Println("Error parsing ABI from : ", abiSource)
 		panic(err)
 	}
 
@@ -63,7 +92,7 @@ func abiFromSelector(selector string, path string) string {
 		panic(err)
 	}
 	if method == nil {
-		return fmt.Sprintf("Method not found in file at %s", path)
+		return fmt.Sprintf("Method not found in file at %s", abiPath)
 	}
 
 	return method.Sig

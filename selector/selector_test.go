@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestFunctionSelector(t *testing.T) {
+func TestSelectorFromSig(t *testing.T) {
 	tests := []struct {
 		name        string
 		functionSig string
@@ -26,8 +26,8 @@ func TestFunctionSelector(t *testing.T) {
 		{
 			name:        "bad function",
 			functionSig: "gibberish",
-			want:        "0xa9059cbb",
 			panics:      true,
+			want:        "not a valid function signature",
 		},
 	}
 
@@ -38,7 +38,7 @@ func TestFunctionSelector(t *testing.T) {
 					if r := recover(); r != nil {
 						// Check if the panic value is as expected
 						errorString := r.(error).Error()
-						wantErrorSubString := "not a valid function signature"
+						wantErrorSubString := tc.want
 
 						if strings.Contains(errorString, wantErrorSubString) == false {
 							t.Errorf("Expected panic message to contain: %s, got: %v", wantErrorSubString, errorString)
@@ -49,9 +49,9 @@ func TestFunctionSelector(t *testing.T) {
 					}
 				}()
 
-				FunctionSelector(tc.functionSig)
+				SelectorFromSig(tc.functionSig)
 			} else {
-				got := FunctionSelector(tc.functionSig)
+				got := SelectorFromSig(tc.functionSig)
 				if got != tc.want {
 					t.Errorf("FunctionSelector(%s) = %s, want %s", tc.functionSig, got, tc.want)
 				}
@@ -60,26 +60,52 @@ func TestFunctionSelector(t *testing.T) {
 	}
 }
 
-func TestAbiFromSelector(t *testing.T) {
+func TestSigFromSelector(t *testing.T) {
 	tests := []struct {
 		name     string
 		selector string
 		path     string
+		url      string
 		panics   bool
 		want     string // Hex string
 	}{
 		{
-			name:     "erc20 transfer",
+			name:     "abi from file",
 			selector: "0xa9059cbb",
 			path:     path.Join("testdata", "erc20.abi.json"),
+			want:     "transfer(address,uint256)",
+		},
+		{
+			name:     "abi from url",
+			selector: "0xa9059cbb",
+			url:      "https://gist.githubusercontent.com/veox/8800debbf56e24718f9f483e1e40c35c/raw/f853187315486225002ba56e5283c1dba0556e6f/erc20.abi.json",
+			want:     "transfer(address,uint256)",
+		},
+		{
+			name:     "abi from path and url - defaults to path",
+			selector: "0xa9059cbb",
+			path:     path.Join("testdata", "erc20.abi.json"),
+			url:      "https://gist.githubusercontent.com/veox/8800debbf56e24718f9f483e1e40c35c/raw/f853187315486225002ba56e5283c1dba0556e6f/erc20.abi.json",
 			want:     "transfer(address,uint256)",
 		},
 		{
 			name:     "non existent selector",
 			selector: "0xa3063fba",
 			path:     path.Join("testdata", "erc20.abi.json"),
-			want:     "no method with id",
 			panics:   true,
+			want:     "no method with id",
+		},
+		{
+			name:     "invalid abi path",
+			selector: "0xa3063fba",
+			path:     path.Join("invalid-testdata-path", "erc20.abi.json"),
+			panics:   true,
+			want:     "no such file or directory",
+		},
+		{
+			name:   "empty path, empty url",
+			panics: true,
+			want:   "abiPath and url cannot both be empty",
 		},
 	}
 
@@ -100,9 +126,9 @@ func TestAbiFromSelector(t *testing.T) {
 					}
 				}()
 
-				abiFromSelector(tc.selector, tc.path)
+				SigFromSelector(tc.selector, tc.path, tc.url)
 			} else {
-				got := abiFromSelector(tc.selector, tc.path)
+				got := SigFromSelector(tc.selector, tc.path, tc.url)
 				if got != tc.want {
 					t.Errorf("abiFromSelector(%s) = %s, want %s", tc.selector, got, tc.want)
 				}
