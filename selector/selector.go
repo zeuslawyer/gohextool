@@ -82,7 +82,7 @@ func SigFromSelector(selector string, abiPath string, abiUrl string) string {
 
 	parsedAbi, err := abi.JSON(strings.NewReader(string(abiJson)))
 	if err != nil {
-		fmt.Println("Error parsing ABI from : ", abiSource)
+		fmt.Printf("Error parsing ABI from : %s. \nABIs provided must be an array.\n", abiSource)
 		panic(err)
 	}
 
