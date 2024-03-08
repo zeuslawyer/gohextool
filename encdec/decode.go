@@ -14,12 +14,13 @@ import (
  * Decodes `hex` to a string. `hex` must be prexifed with 0x.
  */
 func DecodeHexToString(hex string) string {
-	bytes := hexutil.MustDecode(hex)
-	return string(bytes) + "\n" // concat newlines so that returned output in terminal pushes terminal prompt "%" to new line.
+	decodedBytes := hexutil.MustDecode(hex)
+
+	return string(decodedBytes) + "\n" // concat newlines so that returned output in terminal pushes terminal prompt "%" to new line.
 }
 
 func DecodeHexToBigInt(hex string) *big.Int {
-	if hex == "0x" {
+	if hex == "0x" || len(hex) == 0 {
 		panic(fmt.Sprintf("%q provided as --hex input", hex))
 	}
 
@@ -28,9 +29,6 @@ func DecodeHexToBigInt(hex string) *big.Int {
 	}
 
 	hexWithoutPrefix := hex[2:]
-	// hexutil requires that integers are encoded using the least amount of digits (no leading zero digits).
-	// trimmed := strings.TrimLeft(hexWithoutPrefix, "0")
-
 	num, err := strconv.ParseInt(hexWithoutPrefix, 16, 64)
 	if err != nil {
 		panic(err)

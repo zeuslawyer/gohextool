@@ -20,9 +20,13 @@ func TestDecodeHexToBigInt(t *testing.T) {
 			want:     new(big.Int).SetInt64(4617104),
 		},
 		{
-			name:     "Empty",
+			name:     "0x panics",
 			inputHex: "0x",
-			want:     new(big.Int).SetInt64(0),
+			panics:   true,
+		},
+		{
+			name:     "Empty String",
+			inputHex: "0x",
 			panics:   true,
 		},
 		{
