@@ -2,12 +2,18 @@ package selector
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// TODO: @zeuslawyer resume here.
+// Calculates the function selector given function signature `funcSig`.
+// The function signature should be in the form of `functionName(type1,type2,...)`.
+// Eg: "transfer(address,uint256)"
 func FunctionSelector(funcSig string) string {
 
 	validateInput := func(sig string) error {
@@ -34,4 +40,31 @@ func FunctionSelector(funcSig string) string {
 	funcSigHash := crypto.Keccak256Hash([]byte(funcSig))
 	selector := funcSigHash.String()[:10] // first 4 bytes ==8 characters, plus "0x"
 	return selector
+}
+
+func abiFromSelector(selector string, path string) string {
+	selectorBytes := hexutil.MustDecode(selector)
+
+	abiJson, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Println("Error reading file")
+		panic(err)
+	}
+
+	parsedAbi, err := abi.JSON(strings.NewReader(string(abiJson)))
+	if err != nil {
+		fmt.Println("Error parsing ABI")
+		panic(err)
+	}
+
+	method, err := parsedAbi.MethodById(selectorBytes)
+	if err != nil {
+		fmt.Println("Error looking up method by its ID")
+		panic(err)
+	}
+	if method == nil {
+		return fmt.Sprintf("Method not found in file at %s", path)
+	}
+
+	return method.Sig
 }
