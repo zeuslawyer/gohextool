@@ -17,7 +17,8 @@ import (
 // The function signature should be in the form of `functionName(type1,type2,...)`.
 // Eg: "transfer(address,uint256)"
 func SelectorFromSig(funcSig string) string {
-	// TODO @zeuslawyer change to use the abi packages Method type
+	// TODO resume here @zeuslawyer change to use the go-ethereum abi package's Method type
+	funcSig = strings.ReplaceAll(funcSig, " ", "")
 	validateInput := func(sig string) error {
 		re := regexp.MustCompile(`^(\w+)`) // match the first word in a given string
 		matches := re.FindStringSubmatch(sig)
@@ -47,6 +48,8 @@ func SelectorFromSig(funcSig string) string {
 // Given a function selector, returns the function signature from provided ABI file and path
 // or from a URL.  If both are provided it will default to using the file path.
 func SigFromSelector(selector string, abiPath string, abiUrl string) string {
+	// TODO resume here @zeuslawyer require that the ABI file must be a JSON object with the property `abi` that gets read in.
+
 	if abiPath == "" && abiUrl == "" {
 		panic(fmt.Errorf("abiPath and url cannot both be empty"))
 	}
