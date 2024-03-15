@@ -6,6 +6,13 @@ import (
 	"testing"
 )
 
+const (
+	// "Raw" Github Gists
+	badJsonUrl  = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/54b14fbfb686e5605e79a4a950031ecaff279d4a/bad-data-erc20.json"
+	goodJsonUrl = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"
+	badUrlExt   = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/54b14fbfb686e5605e79a4a950031ecaff279d4a/bad-data-erc20.NotJson"
+)
+
 func TestSelectorFromSig(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -78,15 +85,43 @@ func TestSigFromSelector(t *testing.T) {
 		{
 			name:     "abi from url",
 			selector: "0xa9059cbb",
-			url:      "https://gist.githubusercontent.com/veox/8800debbf56e24718f9f483e1e40c35c/raw/f853187315486225002ba56e5283c1dba0556e6f/erc20.abi.json",
+			url:      goodJsonUrl,
 			want:     "transfer(address,uint256)",
 		},
 		{
 			name:     "abi from path and url - defaults to path",
 			selector: "0xa9059cbb",
 			path:     path.Join("testdata", "erc20.abi.json"),
-			url:      "https://gist.githubusercontent.com/veox/8800debbf56e24718f9f483e1e40c35c/raw/f853187315486225002ba56e5283c1dba0556e6f/erc20.abi.json",
+			url:      goodJsonUrl,
 			want:     "transfer(address,uint256)",
+		},
+		{
+			name:     "file - invalid JSON",
+			selector: "0xa9059cbb",
+			path:     path.Join("testdata", "erc20.bad-abi.json"),
+			panics:   true,
+			want:     "error parsing JSON from file",
+		},
+		{
+			name:     "URL - invalid JSON", 
+			selector: "0xa9059cbb",
+			url:      badJsonUrl,
+			panics:   true,
+			want:     "error parsing JSON from file",
+		},
+		{
+			name:     "file - not .json extension",
+			selector: "0xa9059cbb",
+			path:     path.Join("testdata", "erc20.abi.NotJson"),
+			panics:   true,
+			want:     "invalid file/url extension",
+		},
+		{
+			name:     "URL - not .json file extension",
+			selector: "0xa9059cbb",
+			url:      badUrlExt,
+			panics:   true,
+			want:     "invalid file/url extension",
 		},
 		{
 			name:     "non existent selector",

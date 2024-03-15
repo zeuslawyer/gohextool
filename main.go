@@ -47,8 +47,9 @@ func main() {
 		},
 		{
 			Name:    "selector",
+			Args:    false,
 			Aliases: []string{"selectorFromSig"},
-			Usage:   "calculates the function selector from a given function signature",
+			Usage:   "calculates the function selector from a given function signature.",
 			Action: func(cliCtx *cli.Context) error {
 				fmt.Printf("%v\n", selector.SelectorFromSig(cliCtx.String("sig")))
 				return nil
@@ -62,7 +63,6 @@ func main() {
 			Aliases: []string{"matchToSig"},
 			Usage:   "Look through the provided ABI to find a function signature that matches the given function selector",
 			Action: func(cliCtx *cli.Context) error {
-				// TODO @zeuslawyer instead of flags the path and url should be arguments?
 				fmt.Printf("%v\n", selector.SigFromSelector(cliCtx.String("selector"), cliCtx.String("path"), cliCtx.String("url")))
 				return nil
 			},
@@ -72,8 +72,6 @@ func main() {
 				flags.CommandFlags["url"],
 			},
 		},
-
-		// TODO zeuslawyer: add selector commands
 	}
 
 	if err := app.Run(os.Args); err != nil {

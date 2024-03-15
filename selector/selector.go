@@ -5,8 +5,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
+
+	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -17,7 +21,10 @@ import (
 // The function signature should be in the form of `functionName(type1,type2,...)`.
 // Eg: "transfer(address,uint256)"
 func SelectorFromSig(funcSig string) string {
-	// TODO resume here @zeuslawyer change to use the go-ethereum abi package's Method type
+	if funcSig == "" {
+		fmt.Println("Error: function signature cannot be empty. Pass in the '--sig' flag with the function signature.")
+		return ""
+	}
 	funcSig = strings.ReplaceAll(funcSig, " ", "")
 	validateInput := func(sig string) error {
 		re := regexp.MustCompile(`^(\w+)`) // match the first word in a given string
@@ -48,47 +55,58 @@ func SelectorFromSig(funcSig string) string {
 // Given a function selector, returns the function signature from provided ABI file and path
 // or from a URL.  If both are provided it will default to using the file path.
 func SigFromSelector(selector string, abiPath string, abiUrl string) string {
-	// TODO resume here @zeuslawyer require that the ABI file must be a JSON object with the property `abi` that gets read in.
-
 	if abiPath == "" && abiUrl == "" {
 		panic(fmt.Errorf("abiPath and url cannot both be empty"))
 	}
 
-	selectorBytes := hexutil.MustDecode(selector)
-
-	var abiJson []byte
+	var abiJsonStr string
 	var abiSource string
+
 	if abiPath != "" {
+		err := validateUriExtension(abiPath)
+		if err != nil {
+			panic(err)
+		}
+
 		abiSource = abiPath
-		file, err := os.ReadFile(abiSource)
+		fileBytes, err := os.ReadFile(abiSource)
 		if err != nil {
 			fmt.Println("Error reading file")
 			panic(err)
 		}
 
-		abiJson = file
-	} else {
-		abiSource = abiUrl
-		resp, err := http.Get(abiUrl)
+		abiJsonStr = bytesToJsonString(fileBytes, abiSource)
+
+	} else { // reading from URL instead of file
+		err := validateUriExtension(abiUrl)
 		if err != nil {
-			fmt.Printf("Error fetching ABI file from url %s", abiUrl)
+			panic(err)
+		}
+
+		abiSource = abiUrl
+		resp, err := http.Get(abiSource)
+		if err != nil {
+			fmt.Printf("Error fetching ABI file from url %s", abiSource)
 			panic(err)
 		}
 		defer resp.Body.Close()
 
-		abiJson, err = io.ReadAll(resp.Body)
+		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Println("Error reading ABI from http response")
+			fmt.Println("Error reading file from http response")
 			panic(err)
 		}
+
+		abiJsonStr = bytesToJsonString(b, abiSource)
 	}
 
-	parsedAbi, err := abi.JSON(strings.NewReader(string(abiJson)))
+	parsedAbi, err := abi.JSON(strings.NewReader(abiJsonStr))
 	if err != nil {
 		fmt.Printf("Error parsing ABI from : %s. \nABIs provided must be an array.\n", abiSource)
 		panic(err)
 	}
 
+	selectorBytes := hexutil.MustDecode(selector)
 	method, err := parsedAbi.MethodById(selectorBytes)
 	if err != nil {
 		fmt.Println("Error looking up method by its ID")
@@ -99,4 +117,60 @@ func SigFromSelector(selector string, abiPath string, abiUrl string) string {
 	}
 
 	return method.Sig
+}
+
+func validateUriExtension(uri string) error {
+	ext := filepath.Ext(uri)
+	if ext != ".json" {
+		return fmt.Errorf("invalid file/url extension: %s, must be .json", ext)
+	}
+	return nil
+}
+
+func validateIsSlice(value interface{}) bool { // TODO remove this function -- not needed?
+	// Get the reflect.Type of the value
+	t := reflect.TypeOf(value)
+
+	// Check if the type is an array
+	return t.Kind() == reflect.Slice
+}
+func bytesToJsonString(b []byte, abiSourceUri string) string {
+	var data map[string]interface{}
+
+	if err := json.Unmarshal(b, &data); err != nil {
+		panic(fmt.Errorf("error parsing JSON from file at %s", abiSourceUri))
+	}
+
+	abiData, ok := data["abi"]
+	if !ok {
+		fmt.Printf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri)
+		return ""
+	}
+
+	// isSlice := validateIsSlice(abiSlice)
+	// if !isSlice {
+	// 	fmt.Printf("Value of property 'abi' in supplied file is not an array")
+	// 	return ""
+	// }
+
+	// arrData := abiSlice.([]interface{}) // @zeuslawyer TODO since this type assertion returns OK do we need validateIsSlice?
+	// jsonBytes, err := json.Marshal(arrData)
+	// if err != nil {
+	// 	fmt.Printf("Error marshalling ABI's array data to JSON bytes")
+	// 	return ""
+	// }
+
+	abiSlice, ok := abiData.([]interface{}) // @zeuslawyer TODO since this type assertion returns OK do we need valudateIsSlice?
+	if !ok {
+		fmt.Printf("Value of property 'abi' in supplied file is not an array")
+		return ""
+	}
+
+	jsonBytes, err := json.Marshal(abiSlice)
+	if err != nil {
+		fmt.Printf("Error marshalling ABI's array data to JSON bytes")
+		return ""
+	}
+
+	return string(jsonBytes)
 }

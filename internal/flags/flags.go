@@ -6,12 +6,6 @@ import "github.com/urfave/cli/v2"
 var CommandFlags = make(map[string]cli.Flag)
 
 func init() {
-	CommandFlags["lang"] = &cli.StringFlag{
-		Name:  "lang",
-		Value: "english",
-		Usage: "language for the greeting",
-	}
-
 	CommandFlags["hex"] = &cli.StringFlag{
 		Name:  "hex",
 		Value: "0x",
@@ -32,6 +26,6 @@ func init() {
 	}
 	CommandFlags["sig"] = &cli.StringFlag{
 		Name:  "sig",
-		Usage: "Function signature in quotes and in the format of `\"functionName(type1,type2,...)\"`",
+		Usage: "Function signature in quotes. Exclude the the 'function' keyword. Must follow the ABI spec e.g.  'function foo(uint32 a, int b)' = 'foo(uint32,int256)'",
 	}
 }
