@@ -15,6 +15,10 @@ func init() {
 		Name:  "selector",
 		Usage: "Function Selector hex string",
 	}
+	CommandFlags["topic"] = &cli.StringFlag{
+		Name:  "topic",
+		Usage: "topic hash - 32 bytes",
+	}
 	CommandFlags["path"] = &cli.StringFlag{
 		Name:  "path",
 		Usage: "absolute path to the ABI file",
@@ -26,10 +30,5 @@ func init() {
 	CommandFlags["sig"] = &cli.StringFlag{
 		Name:  "sig",
 		Usage: "Function signature in quotes. Exclude the the 'function' keyword. Must follow the ABI spec e.g.  'function foo(uint32 a, int b)' = 'foo(uint32,int256)'",
-	}
-	CommandFlags["event"] = &cli.BoolFlag{
-		Name:        "event",
-		DefaultText: "false",
-		Usage:       "Default is false. Explicitly set to true if the signature is an event signature",
 	}
 }

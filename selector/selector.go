@@ -77,7 +77,6 @@ func FuncFromSelector(selector string, abiPath string, abiUrl string) string {
 		}
 
 		abiJsonStr = bytesToJsonString(fileBytes, abiSource)
-
 	} else { // reading from URL instead of file
 		err := validateUriExtension(abiUrl)
 		if err != nil {
@@ -122,8 +121,6 @@ func FuncFromSelector(selector string, abiPath string, abiUrl string) string {
 
 // Given an Events Topic Hash (32 bytes), returns the event's signature from provided ABI file and path
 // or from a URL.  If both are provided it will default to using the file path.
-// TODO @zeuslawyer: implement and see if possible to use 4-byte selector instead of 32-byte topic hash.
-// TODO @zeuslawyer: add to CLI commands in main.go.
 func EventFromTopicHash(topicHash string, abiPath string, abiUrl string) string {
 	if abiPath == "" && abiUrl == "" {
 		panic(fmt.Errorf("abiPath and url cannot both be empty"))
@@ -131,8 +128,7 @@ func EventFromTopicHash(topicHash string, abiPath string, abiUrl string) string 
 
 	var abiJsonStr string
 	var abiSource string
-
-	if abiPath != "" {
+	if abiPath != "" { // TODO @zeuslawyer abstract logic from both the function and event decoders.
 		err := validateUriExtension(abiPath)
 		if err != nil {
 			panic(err)
@@ -176,7 +172,6 @@ func EventFromTopicHash(topicHash string, abiPath string, abiUrl string) string 
 		panic(err)
 	}
 
-	fmt.Println("ZUBIN topicHash: ", topicHash)
 	selectorBytes := hexutil.MustDecode(topicHash)
 	selectorHash := common.BytesToHash(selectorBytes)
 	ev, err := parsedAbi.EventByID(selectorHash)

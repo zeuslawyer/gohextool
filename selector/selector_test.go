@@ -188,6 +188,12 @@ func TestEventFromTopicHash(t *testing.T) {
 			path:      path.Join("testdata", "erc20.abi.json"),
 			want:      "Approval(address,address,uint256)",
 		},
+		{
+			name:      "Event Signature from ABI file",
+			topicHash: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+			path:      path.Join("testdata", "erc20.abi.json"),
+			want:      "Transfer(address,address,uint256)",
+		},
 	}
 
 	for _, tc := range tests {

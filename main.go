@@ -59,11 +59,15 @@ func main() {
 			},
 		},
 		{
-			Name:    "funcsig",
+			Name:    "decodeSelector",
 			Aliases: []string{"methodsig"},
 			Usage:   "Look through the provided ABI to find a function signature that matches the given function selector",
 			Action: func(cliCtx *cli.Context) error {
-				fmt.Printf("%v\n", selector.FuncFromSelector(cliCtx.String("selector"), cliCtx.String("path"), cliCtx.String("url"), cliCtx.Bool("event")))
+				fmt.Printf("%v\n", selector.FuncFromSelector(
+					cliCtx.String("selector"),
+					cliCtx.String("path"),
+					cliCtx.String("url")),
+				)
 				return nil
 			},
 			Flags: []cli.Flag{
@@ -71,6 +75,24 @@ func main() {
 				flags.CommandFlags["path"],
 				flags.CommandFlags["url"],
 				flags.CommandFlags["event"],
+			},
+		},
+		{
+			Name:    "decodeEvent",
+			Aliases: []string{"eventsig"},
+			Usage:   "Look through the provided ABI to find the event signature that matches the given 32 byte topic hash",
+			Action: func(cliCtx *cli.Context) error {
+				fmt.Printf("%v\n", selector.EventFromTopicHash(
+					cliCtx.String("topic"),
+					cliCtx.String("path"),
+					cliCtx.String("url")),
+				)
+				return nil
+			},
+			Flags: []cli.Flag{
+				flags.CommandFlags["topic"],
+				flags.CommandFlags["path"],
+				flags.CommandFlags["url"],
 			},
 		},
 	}
