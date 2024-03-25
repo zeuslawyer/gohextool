@@ -194,13 +194,6 @@ func validateUriExtension(uri string) error {
 	return nil
 }
 
-func validateIsSlice(value interface{}) bool { // TODO remove this function -- not needed?
-	// Get the reflect.Type of the value
-	t := reflect.TypeOf(value)
-
-	// Check if the type is an array
-	return t.Kind() == reflect.Slice
-}
 func bytesToJsonString(b []byte, abiSourceUri string) string {
 	var data map[string]interface{}
 
