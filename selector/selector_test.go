@@ -67,7 +67,7 @@ func TestSelectorFromSig(t *testing.T) {
 	}
 }
 
-func TestSigFromSelector(t *testing.T) {
+func TestFuncFromSelector(t *testing.T) {
 	tests := []struct {
 		name     string
 		selector string
@@ -103,7 +103,7 @@ func TestSigFromSelector(t *testing.T) {
 			want:     "error parsing JSON from file",
 		},
 		{
-			name:     "URL - invalid JSON", 
+			name:     "URL - invalid JSON",
 			selector: "0xa9059cbb",
 			url:      badJsonUrl,
 			panics:   true,
@@ -161,11 +161,57 @@ func TestSigFromSelector(t *testing.T) {
 					}
 				}()
 
-				SigFromSelector(tc.selector, tc.path, tc.url)
+				FuncFromSelector(tc.selector, tc.path, tc.url)
 			} else {
-				got := SigFromSelector(tc.selector, tc.path, tc.url)
+				got := FuncFromSelector(tc.selector, tc.path, tc.url)
 				if got != tc.want {
 					t.Errorf("abiFromSelector(%s) = %s, want %s", tc.selector, got, tc.want)
+				}
+			}
+		})
+	}
+}
+
+func TestEventFromTopicHash(t *testing.T) {
+	tests := []struct {
+		name      string
+		topicHash string
+		path      string
+		url       string
+		panics    bool
+		want      string // Hex string
+	}{
+		// TODO @zeuslawyer do remaining test cases
+		{
+			name:      "Event Signature from ABI file",
+			topicHash: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925", // "0x8c5be1e5",
+			path:      path.Join("testdata", "erc20.abi.json"),
+			want:      "Approval(address,address,uint256)",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.panics {
+				defer func() {
+					if r := recover(); r != nil {
+						// Check if the panic value is as expected
+						errorString := r.(error).Error()
+						wantErrorSubString := tc.want
+						if strings.Contains(errorString, wantErrorSubString) == false {
+							t.Errorf("Expected panic message to contain: %s, got: %v", wantErrorSubString, errorString)
+						}
+					} else {
+						// The function did not panic as expected
+						t.Error("Expected the function to panic, but it did not")
+					}
+				}()
+
+				EventFromTopicHash(tc.topicHash, tc.path, tc.url)
+			} else {
+				got := EventFromTopicHash(tc.topicHash, tc.path, tc.url)
+				if got != tc.want {
+					t.Errorf("abiFromSelector(%s) = %s, want %s", tc.topicHash, got, tc.want)
 				}
 			}
 		})

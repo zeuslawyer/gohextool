@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -54,7 +55,7 @@ func SelectorFromSig(funcSig string) string {
 
 // Given a function selector, returns the function signature from provided ABI file and path
 // or from a URL.  If both are provided it will default to using the file path.
-func SigFromSelector(selector string, abiPath string, abiUrl string) string {
+func FuncFromSelector(selector string, abiPath string, abiUrl string) string {
 	if abiPath == "" && abiUrl == "" {
 		panic(fmt.Errorf("abiPath and url cannot both be empty"))
 	}
@@ -101,7 +102,7 @@ func SigFromSelector(selector string, abiPath string, abiUrl string) string {
 	}
 
 	parsedAbi, err := abi.JSON(strings.NewReader(abiJsonStr))
-	if err != nil {
+	if err != nil { // @zeuslawyer TODO check if this is the correct way to check for this error
 		fmt.Printf("Error parsing ABI from : %s. \nABIs provided must be an array.\n", abiSource)
 		panic(err)
 	}
@@ -117,6 +118,77 @@ func SigFromSelector(selector string, abiPath string, abiUrl string) string {
 	}
 
 	return method.Sig
+}
+
+// Given an Events Topic Hash (32 bytes), returns the event's signature from provided ABI file and path
+// or from a URL.  If both are provided it will default to using the file path.
+// TODO @zeuslawyer: implement and see if possible to use 4-byte selector instead of 32-byte topic hash.
+// TODO @zeuslawyer: add to CLI commands in main.go.
+func EventFromTopicHash(topicHash string, abiPath string, abiUrl string) string {
+	if abiPath == "" && abiUrl == "" {
+		panic(fmt.Errorf("abiPath and url cannot both be empty"))
+	}
+
+	var abiJsonStr string
+	var abiSource string
+
+	if abiPath != "" {
+		err := validateUriExtension(abiPath)
+		if err != nil {
+			panic(err)
+		}
+
+		abiSource = abiPath
+		fileBytes, err := os.ReadFile(abiSource)
+		if err != nil {
+			fmt.Println("Error reading file")
+			panic(err)
+		}
+
+		abiJsonStr = bytesToJsonString(fileBytes, abiSource)
+
+	} else { // reading from URL instead of file
+		err := validateUriExtension(abiUrl)
+		if err != nil {
+			panic(err)
+		}
+
+		abiSource = abiUrl
+		resp, err := http.Get(abiSource)
+		if err != nil {
+			fmt.Printf("Error fetching ABI file from url %s", abiSource)
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Error reading file from http response")
+			panic(err)
+		}
+
+		abiJsonStr = bytesToJsonString(b, abiSource)
+	}
+
+	parsedAbi, err := abi.JSON(strings.NewReader(abiJsonStr))
+	if err != nil { // @zeuslawyer TODO check if this is the correct way to check for this error
+		fmt.Printf("Error parsing ABI from : %s. \nABIs provided must be an array.\n", abiSource)
+		panic(err)
+	}
+
+	fmt.Println("ZUBIN topicHash: ", topicHash)
+	selectorBytes := hexutil.MustDecode(topicHash)
+	selectorHash := common.BytesToHash(selectorBytes)
+	ev, err := parsedAbi.EventByID(selectorHash)
+	if err != nil {
+		fmt.Println("Error looking up event by its topics hash")
+		panic(err)
+	}
+	if ev == nil {
+		return fmt.Sprintf("Method not found in file at %s", abiPath)
+	}
+
+	return ev.Sig
 }
 
 func validateUriExtension(uri string) error {
