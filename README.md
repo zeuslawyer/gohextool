@@ -22,8 +22,11 @@
     Please examine [the shape of the object](https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json) for this to work correctly. The ABI json files produced by Hardhat will work too.
     <br>
 
-
 5. Calculate the function selector from the ABI-specified function signature (excludes the word 'function'): `hextool selector --sig 'transfer(address,uint256)'` // 0xa9059cbb
    <br>
    <b>Note: </b> The signature must be enclosed in single or double quotes.
    <br>
+
+6 Decode a selector (4 bytes) into the function signature, given a valid ABI file. `hextool decodeSelector --selector 0xa9059cbb --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`
+
+7. Decode the topic hash (on block explorers this shows up as `topic0`). The full 32-byte hexstring is needed, as is a valid ABI. `hextool decodeEvent --topic 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`

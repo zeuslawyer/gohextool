@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strings"
 
@@ -59,7 +58,6 @@ func FuncFromSelector(selector string, abiPath string, abiUrl string) string {
 	if abiPath == "" && abiUrl == "" {
 		panic(fmt.Errorf("abiPath and url cannot both be empty"))
 	}
-
 	var abiJsonStr string
 	var abiSource string
 

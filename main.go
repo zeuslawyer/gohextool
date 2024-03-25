@@ -74,7 +74,6 @@ func main() {
 				flags.CommandFlags["selector"],
 				flags.CommandFlags["path"],
 				flags.CommandFlags["url"],
-				flags.CommandFlags["event"],
 			},
 		},
 		{
