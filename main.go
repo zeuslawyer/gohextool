@@ -63,7 +63,7 @@ func main() {
 			Aliases: []string{"methodsig"},
 			Usage:   "Look through the provided ABI to find a function signature that matches the given function selector",
 			Action: func(cliCtx *cli.Context) error {
-				fmt.Printf("%v\n", selector.FuncFromSelector(
+				fmt.Printf("%v\n", selector.SigFromSelector(
 					cliCtx.String("selector"),
 					cliCtx.String("path"),
 					cliCtx.String("url")),
