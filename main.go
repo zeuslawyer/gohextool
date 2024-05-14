@@ -94,6 +94,22 @@ func main() {
 				flags.CommandFlags["url"],
 			},
 		},
+		{
+			Name:    "abi.decode",
+			Aliases: []string{"abidecode"},
+			Usage:   "abi-decode the given input hex into its corresponding data as per the types provided",
+			Action: func(cliCtx *cli.Context) error {
+				fmt.Printf("%v\n", encdec.AbiDecode(
+					cliCtx.String("hex"),
+					cliCtx.String("types"),
+				))
+				return nil
+			},
+			Flags: []cli.Flag{
+				flags.CommandFlags["hex"],
+				flags.CommandFlags["types"],
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {

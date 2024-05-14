@@ -1,17 +1,14 @@
 package encdec
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 /*
@@ -55,19 +52,16 @@ func AbiDecode(hexInput string, dataTypes string) []any {
 		hexInput = hexInput[2:]
 	}
 
-	var args abi.Arguments = parseDataTypesString(dataTypes)
-
 	b, err := hex.DecodeString(hexInput)
 	if err != nil {
 		fmt.Printf("Error decoding hex input: %v", err)
 	}
 
-	// fmt.Printf("LOOK ZUBIN:  %d && %v\n", len(b), args.NonIndexed())
-	// if len(b) < 64 {
-	// 	// to avoid this error in toGoType() https://github.com/ethereum/go-ethereum/blob/master/accounts/abi/unpack.go#L224
-	// 	// called inside https://github.com/ethereum/go-ethereum/blob/8f7eb9ccd99ee47721a7bfde494d6da28de4cd8e/accounts/abi/argument.go#L184
-	// 	// b = common.RightPadBytes(b, 64)
-	// }
+	if len(b) == 0 {
+		return []any{} // Empty.
+	}
+
+	var args abi.Arguments = parseDataTypesString(dataTypes)
 	values, err := args.Unpack(b)
 	if err != nil {
 		fmt.Printf("Error Unpacking hex input: %v", err)
@@ -81,59 +75,8 @@ func AbiDecode(hexInput string, dataTypes string) []any {
 	return values
 }
 
-// TODO zubin clean this up and its helper func.
-func TODOAbiDecode(hexInput string, dataTypes []string) any {
-	// https://pkg.go.dev/github.com/ethereum/go-ethereum/rlp#Decode
-	// References: https://ethereum.stackexchange.com/questions/117060/abi-decode-raw-types-with-go
-	//https://ethereum.stackexchange.com/questions/29809/how-to-decode-input-data-with-abi-using-golang
-
-	if strings.HasPrefix(hexInput, "0x") {
-		// Strip out the "0x" prefix
-		hexInput = hexInput[2:]
-	}
-	decodedBytes, err := hex.DecodeString(hexInput)
-	if err != nil {
-		fmt.Errorf("Error decoding hex input: %v", err)
-	}
-
-	// Convert each string data type to a reflect.Type
-	var structTypes []reflect.Type
-	for _, typeName := range dataTypes {
-		t, _ := abi.NewType(typeName, "", nil)
-		structTypes = append(structTypes, t.GetType())
-	}
-
-	// Create a new struct type dynamically at runtime
-	// to hold the decoded values.
-	dynamicallyCreatedStruct := reflect.StructOf(makeStructFields(structTypes))
-
-	// Create a new instance of the struct
-	structInstancePtr := reflect.New(dynamicallyCreatedStruct).Elem()
-	var resultValues = structInstancePtr.Interface()
-
-	err = rlp.Decode(bytes.NewReader(decodedBytes), &resultValues)
-	if err != nil {
-		fmt.Printf("Error RLP decoding the hex input: %#v\n", err)
-		panic(err)
-	} else {
-		fmt.Printf("Decoded value: %#v\n", resultValues)
-	}
-	return resultValues
-}
-
-func makeStructFields(fieldTypes []reflect.Type) []reflect.StructField {
-	var structFields []reflect.StructField
-	for i, fieldType := range fieldTypes {
-		field := reflect.StructField{
-			Name: fmt.Sprintf("Field%d", i),
-			Type: fieldType,
-		}
-		structFields = append(structFields, field)
-
-	}
-	return structFields
-}
-
+// Parse  comma-separated string containing a list of 1 or more
+// data types and return Abi.Arguments.
 func parseDataTypesString(dataTypes string) abi.Arguments {
 	typesSlice := strings.Split(dataTypes, ",")
 

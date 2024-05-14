@@ -136,6 +136,12 @@ func TestAbiDecode(t *testing.T) {
 			dataTypes: "uint16, string, address",
 			want:      []any{uint16(1001), "zubin", common.HexToAddress("0x208aa722aca42399eac5192ee778e4d42f4e5de3")},
 		},
+		{
+			name:      "HappyPath#5-empty input",
+			inputHex:  "0x",
+			dataTypes: "address",
+			want:      []any{},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

@@ -9,7 +9,7 @@ func init() {
 	CommandFlags["hex"] = &cli.StringFlag{
 		Name:  "hex",
 		Value: "0x",
-		Usage: "hex string to convert",
+		Usage: "hex string to decode",
 	}
 	CommandFlags["selector"] = &cli.StringFlag{
 		Name:  "selector",
@@ -30,5 +30,10 @@ func init() {
 	CommandFlags["sig"] = &cli.StringFlag{
 		Name:  "sig",
 		Usage: "Function signature in quotes. Exclude the the 'function' keyword. Must follow the ABI spec e.g.  'function foo(uint32 a, int b)' = 'foo(uint32,int256)'",
+	}
+	CommandFlags["types"] = &cli.StringFlag{
+		Name:  "types",
+		Value: "",
+		Usage: "comma-separated list of types to decode the hex string to. Eg: 'string, uint, bool, uint'",
 	}
 }

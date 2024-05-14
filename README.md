@@ -31,6 +31,14 @@
 
 7. Decode the topic hash (on block explorers this shows up as `topic0`). The full 32-byte hexstring is needed, as is a valid ABI. `hextool decodeEvent --topic 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`
 
+8. Decode abi-encoded hex input with `hextool abi.decode --hex <<abi encoded hex>> --types "<<comma separated types in a string>>"`.   
+Example:
+```
+hextool abi.decode --hex "00000000000000000000000000000000000000000000000000000000000003e90000000000000000000000000000000000000000000000000000000000000060000000000000000000000000208aa722aca42399eac5192ee778e4d42f4e5de300000000000000000000000000000000000000000000000000000000000000057a7562696e000000000000000000000000000000000000000000000000000000" --types "uint16,string,address"
+```
+
+Produces `[1001 zubin 0x208AA722Aca42399eaC5192EE778e4D42f4E5De3]`
+
 
 
 ## Other projects for research
