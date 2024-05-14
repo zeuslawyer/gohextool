@@ -30,3 +30,13 @@
 6 Decode a selector (4 bytes) into the function signature, given a valid ABI file. `hextool decodeSelector --selector 0xa9059cbb --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`
 
 7. Decode the topic hash (on block explorers this shows up as `topic0`). The full 32-byte hexstring is needed, as is a valid ABI. `hextool decodeEvent --topic 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`
+
+
+
+## Other projects for research
+https://github.com/umbracle/ethgo/tree/main //wrapper pkg
+https://github.com/defiweb/go-eth // wrapper pkg
+
+https://gist.github.com/crazygit/9279a3b26461d7cb03e807a6362ec855 // decoding tx logs, and reading contract ABI from etherscan
+
+

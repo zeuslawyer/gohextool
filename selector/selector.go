@@ -166,7 +166,7 @@ func EventFromTopicHash(topicHex string, _abiPath string, abiUrl string) string 
 
 	topicBytes := hexutil.MustDecode(topicHex)
 	topicHash := common.BytesToHash(topicBytes)
-	
+
 	parsedAbi, err := abi.JSON(strings.NewReader(abiJsonStr))
 	if err != nil { // @zeuslawyer TODO check if this is the correct way to check for this error
 		fmt.Printf("Error parsing ABI from : %s. \nABI provided must be an array.\n", abiPath)
@@ -194,7 +194,7 @@ func validateUriExtension(uri string) error {
 }
 
 func bytesToJsonString(b []byte, abiSourceUri string) string {
-	var data map[string]interface{}
+	var data map[string]any
 
 	if err := json.Unmarshal(b, &data); err != nil {
 		panic(fmt.Errorf("error parsing JSON from file at %s", abiSourceUri))
@@ -212,14 +212,14 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 	// 	return ""
 	// }
 
-	// arrData := abiSlice.([]interface{}) // @zeuslawyer TODO since this type assertion returns OK do we need validateIsSlice?
+	// arrData := abiSlice.([]any) // @zeuslawyer TODO since this type assertion returns OK do we need validateIsSlice?
 	// jsonBytes, err := json.Marshal(arrData)
 	// if err != nil {
 	// 	fmt.Printf("Error marshalling ABI's array data to JSON bytes")
 	// 	return ""
 	// }
 
-	abiSlice, ok := abiData.([]interface{}) // @zeuslawyer TODO since this type assertion returns OK do we need valudateIsSlice?
+	abiSlice, ok := abiData.([]any) // @zeuslawyer TODO since this type assertion returns OK do we need valudateIsSlice?
 	if !ok {
 		fmt.Printf("Value of property 'abi' in supplied file is not an array")
 		return ""

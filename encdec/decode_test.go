@@ -2,9 +2,12 @@ package encdec
 
 import (
 	"math/big"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func TestDecodeHexToBigInt(t *testing.T) {
@@ -97,6 +100,51 @@ func TestDecodeHexToString(t *testing.T) {
 			got := DecodeHexToString(tc.inputHex)
 			if got != tc.want {
 				t.Errorf("DecodeHexToString() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestAbiDecode(t *testing.T) {
+	tests := []struct {
+		name      string
+		inputHex  string
+		dataTypes string
+		want      []any
+	}{
+		{
+			name:      "HappyPath#1-0x prefix",
+			inputHex:  "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000a676f2d686578746f6f6c00000000000000000000000000000000000000000000",
+			dataTypes: "string",
+			want:      []any{"go-hextool"}, // see https://adibas03.github.io/online-ethereum-abi-encoder-decoder/#/decode to get decoded scalar values
+		},
+		{
+			name:      "HappyPath#2-multiple scalar types",
+			inputHex:  "0x000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000166f4b60000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000d68617070792074657374696e6700000000000000000000000000000000000000",
+			dataTypes: "uint, uint256, string",
+			want:      []any{big.NewInt(10), big.NewInt(23524534), "happy testing"},
+		},
+		{
+			name:      "HappyPath#3-Prefix Gets Added",
+			inputHex:  "000000000000000000000000000000000000000000000000000000000000002b",
+			dataTypes: "uint16",
+			want:      []any{uint16(43)},
+		},
+		{
+			name:      "HappyPath#4-multiple scalars including address",
+			inputHex:  "00000000000000000000000000000000000000000000000000000000000003e90000000000000000000000000000000000000000000000000000000000000060000000000000000000000000208aa722aca42399eac5192ee778e4d42f4e5de300000000000000000000000000000000000000000000000000000000000000057a7562696e000000000000000000000000000000000000000000000000000000",
+			dataTypes: "uint16, string, address",
+			want:      []any{uint16(1001), "zubin", common.HexToAddress("0x208aa722aca42399eac5192ee778e4d42f4e5de3")},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := AbiDecode(tc.inputHex, tc.dataTypes)
+			if len(got) != len(tc.want) {
+				t.Errorf("%s failing because returned slice have unequal length, %d & %d", tc.name, len(got), len(tc.want))
+			}
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("AbiDecode() = %v, want %v", got, tc.want)
 			}
 		})
 	}
