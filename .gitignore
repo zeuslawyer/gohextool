@@ -4,6 +4,9 @@
 *.so
 *.dylib
 
+# the tool
+hextool
+
 # Test binary, built with `go test -c`
 *.test
 
