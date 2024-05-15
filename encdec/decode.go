@@ -76,13 +76,12 @@ func AbiDecode(hexInput string, dataTypes string) []any {
 	return values
 }
 
-// TODO zubin  Abi.encode with,..Arguments.Pack()
 /*
- * Given a tuple of data values and a tuple of their corresponding types,
- * ABI-encode the data values according to their provided types
-* `input` is a comma-separated string of values. Eg: "hello, 123, true, 456".
- `dataTypes` is a comma-separated string of types. Eg: "string, uint, bool, uint".
- *  The sequence of types in `dataTypes` must match the sequence of values in `input`.
+  - Given a tuple of data values and a tuple of their corresponding types,
+  - ABI-encode the data values according to their provided types
+  - `input` is a comma-separated string of values. Eg: "hello, 123, true, 456".
+    `dataTypes` is a comma-separated string of types. Eg: "string, uint, bool, uint".
+  - The sequence of types in `dataTypes` must match the sequence of values in `input`.
 */
 func AbiEncode(inputValues string, dataTypes string) (res string) {
 	if len(inputValues) == 0 {
@@ -93,8 +92,13 @@ func AbiEncode(inputValues string, dataTypes string) (res string) {
 	// Split  each input into a slice of string values
 	inputAsSlice := strings.Split(inputValues, ",")
 	typesAsSlice := strings.Split(dataTypes, ",")
+	if len(inputAsSlice) != len(typesAsSlice) {
+		panic(fmt.Sprintf("Number of input values does not match number of types - %d inputs to  %d types", len(inputAsSlice), len(typesAsSlice)))
+
+	}
 
 	// convert strings to the appropriate types
+	// TODO zubin resume here.
 	typedInputValuesSlice := make([]any, len(typesAsSlice))
 	for idx, ty := range typesAsSlice {
 		_ty := strings.TrimSpace(ty)
