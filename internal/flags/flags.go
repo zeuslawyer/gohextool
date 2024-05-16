@@ -9,7 +9,7 @@ func init() {
 	CommandFlags["hex"] = &cli.StringFlag{
 		Name:  "hex",
 		Value: "0x",
-		Usage: "hex string to decode",
+		Usage: "hex string to decode. Must start with '0x'. Can decode into a string or ABI-decode tuple of values when used with `hextool abi.decode`",
 	}
 	CommandFlags["selector"] = &cli.StringFlag{
 		Name:  "selector",
@@ -34,6 +34,11 @@ func init() {
 	CommandFlags["types"] = &cli.StringFlag{
 		Name:  "types",
 		Value: "",
-		Usage: "comma-separated list of types to decode the hex string to. Eg: 'string, uint, bool, uint'",
+		Usage: "comma-separated list of types to encode/decode the hex string to. Eg: 'string, uint, bool, uint'",
+	}
+	CommandFlags["values"] = &cli.StringFlag{
+		Name:  "values",
+		Value: "",
+		Usage: "comma-separated list of data values to encode the hex string to. Eg: 'string, uint, bool, uint'",
 	}
 }

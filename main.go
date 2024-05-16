@@ -97,7 +97,7 @@ func main() {
 		{
 			Name:    "abi.decode",
 			Aliases: []string{"abidecode"},
-			Usage:   "abi-decode the given input hex into its corresponding data as per the types provided",
+			Usage:   "abi-decode the given input hex into its corresponding data as per the comma-separated types provided",
 			Action: func(cliCtx *cli.Context) error {
 				fmt.Printf("%v\n", encdec.AbiDecode(
 					cliCtx.String("hex"),
@@ -107,6 +107,22 @@ func main() {
 			},
 			Flags: []cli.Flag{
 				flags.CommandFlags["hex"],
+				flags.CommandFlags["types"],
+			},
+		},
+		{
+			Name:    "abi.encode",
+			Aliases: []string{"abiencode"},
+			Usage:   "abi-encode the given input values into hex, as per the data types provided. Input values and data types be comma-separated",
+			Action: func(cliCtx *cli.Context) error {
+				fmt.Printf("%v\n", encdec.AbiEncode(
+					cliCtx.String("values"),
+					cliCtx.String("types"),
+				))
+				return nil
+			},
+			Flags: []cli.Flag{
+				flags.CommandFlags["values"],
 				flags.CommandFlags["types"],
 			},
 		},
