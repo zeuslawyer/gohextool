@@ -107,7 +107,7 @@ func SigFromSelector(selector string, _abiPath string, abiUrl string) string {
 	selectorBytes := hexutil.MustDecode(selector)
 	method, err := parsedAbi.MethodById(selectorBytes)
 	if err != nil {
-		fmt.Println("Error looking up method by its ID")
+		fmt.Println("Error looking up method by its selector")
 		panic(err)
 	}
 	if method == nil {
@@ -155,13 +155,13 @@ func EventFromTopicHash(topicHex string, _abiPath string, abiUrl string) string 
 		}
 		defer resp.Body.Close()
 
-		b, err := io.ReadAll(resp.Body)
+		respBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println("Error reading file from http response")
 			panic(err)
 		}
 
-		abiJsonStr = bytesToJsonString(b, abiPath)
+		abiJsonStr = bytesToJsonString(respBytes, abiPath)
 	}
 
 	topicBytes := hexutil.MustDecode(topicHex)
@@ -194,42 +194,49 @@ func validateUriExtension(uri string) error {
 }
 
 func bytesToJsonString(b []byte, abiSourceUri string) string {
-	var data map[string]any
+	var data any // TODO: zeuslawyer refactor to handle array or map. Eg of array https://raw.githubusercontent.com/Cyfrin/ccip-contracts/main/contracts-ccip/abi/v0.8/Router.json
 
 	if err := json.Unmarshal(b, &data); err != nil {
-		panic(fmt.Errorf("error parsing JSON from file at %s", abiSourceUri))
+		panic(fmt.Errorf("error parsing JSON from file at %s : %s", abiSourceUri, err))
 	}
 
-	abiData, ok := data["abi"]
-	if !ok {
-		fmt.Printf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri)
-		return ""
+	// Check if the data is a slice (array) or a map (object)
+	var abiData any
+	switch v := data.(type) {
+	case []interface{}:
+		fmt.Println("Data is an array")
+		// You can work with v as a []interface{}
+		abiData = v
+	case map[string]interface{}:
+		fmt.Println("Data is an object")
+		d, ok := v["abi"]
+		if !ok {
+			fmt.Printf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri)
+			break
+		}
+
+		// check that the abi property is an array
+		_, ok = d.([]any)
+		if !ok {
+			fmt.Printf("Value of property 'abi' in supplied file is not an array")
+			break
+		}
+		abiData = d
+	default:
+		panic(fmt.Errorf("Data in file at %s is neither an array nor an object", abiSourceUri))
 	}
 
-	// isSlice := validateIsSlice(abiSlice)
-	// if !isSlice {
-	// 	fmt.Printf("Value of property 'abi' in supplied file is not an array")
-	// 	return ""
-	// }
+	//
 
-	// arrData := abiSlice.([]any) // @zeuslawyer TODO since this type assertion returns OK do we need validateIsSlice?
-	// jsonBytes, err := json.Marshal(arrData)
-	// if err != nil {
-	// 	fmt.Printf("Error marshalling ABI's array data to JSON bytes")
-	// 	return ""
-	// }
-
-	abiSlice, ok := abiData.([]any) // @zeuslawyer TODO since this type assertion returns OK do we need valudateIsSlice?
-	if !ok {
-		fmt.Printf("Value of property 'abi' in supplied file is not an array")
-		return ""
-	}
-
-	jsonBytes, err := json.Marshal(abiSlice)
+	jsonBytes, err := json.Marshal(abiData)
 	if err != nil {
-		fmt.Printf("Error marshalling ABI's array data to JSON bytes")
+		fmt.Printf("Error marshalling ABI data to JSON bytes: %s", err)
 		return ""
 	}
 
 	return string(jsonBytes)
+}
+
+func fromSelector(selector string, _abiPath string, abiUrl string) {
+
 }
