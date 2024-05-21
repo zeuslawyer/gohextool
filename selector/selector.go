@@ -55,66 +55,11 @@ func SelectorFromSig(funcSig string) string {
 // Given a function selector, returns the function signature from provided ABI file and path
 // or from a URL.  If both are provided it will default to using the file path.
 func SigFromSelector(selector string, _abiPath string, abiUrl string) string {
-	if _abiPath == "" && abiUrl == "" {
-		panic(fmt.Errorf("abiPath and url cannot both be empty"))
-	}
-	var abiJsonStr string
-	var abiPath string
+	return fromSelector(false, selector, _abiPath, abiUrl)
+}
 
-	if _abiPath != "" {
-		err := validateUriExtension(_abiPath)
-		if err != nil {
-			panic(err)
-		}
-
-		abiPath = _abiPath
-		fileBytes, err := os.ReadFile(abiPath)
-		if err != nil {
-			fmt.Println("Error reading file")
-			panic(err)
-		}
-
-		abiJsonStr = bytesToJsonString(fileBytes, abiPath)
-	} else { // reading from URL instead of file
-		err := validateUriExtension(abiUrl)
-		if err != nil {
-			panic(err)
-		}
-
-		abiPath = abiUrl
-		resp, err := http.Get(abiPath)
-		if err != nil {
-			fmt.Printf("Error fetching ABI file from url %s", abiPath)
-			panic(err)
-		}
-		defer resp.Body.Close()
-
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println("Error reading file from http response")
-			panic(err)
-		}
-
-		abiJsonStr = bytesToJsonString(b, abiPath)
-	}
-
-	parsedAbi, err := abi.JSON(strings.NewReader(abiJsonStr))
-	if err != nil { // @zeuslawyer TODO check if this is the correct way to check for this error
-		fmt.Printf("Error parsing ABI from : %s. \nABI provided must be an array.\n", abiPath)
-		panic(err)
-	}
-
-	selectorBytes := hexutil.MustDecode(selector)
-	method, err := parsedAbi.MethodById(selectorBytes)
-	if err != nil {
-		fmt.Println("Error looking up method by its selector")
-		panic(err)
-	}
-	if method == nil {
-		return fmt.Sprintf("Method not found in file at %s", _abiPath)
-	}
-
-	return method.Sig
+func ErrorSigFromSelector(selector string, _abiPath string, abiUrl string) string {
+	return fromSelector(true, selector, _abiPath, abiUrl)
 }
 
 // Given an Events Topic Hash (32 bytes), returns the event's signature from provided ABI file and path
@@ -204,11 +149,11 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 	var abiData any
 	switch v := data.(type) {
 	case []interface{}:
-		fmt.Println("Data is an array")
+		fmt.Println("Data is an array\n")
 		// You can work with v as a []interface{}
 		abiData = v
 	case map[string]interface{}:
-		fmt.Println("Data is an object")
+		fmt.Println("Data is an object\n")
 		d, ok := v["abi"]
 		if !ok {
 			panic(fmt.Errorf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri))
@@ -224,8 +169,6 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 		panic(fmt.Errorf("Data in file at %s is neither an array nor an object", abiSourceUri))
 	}
 
-	//
-
 	jsonBytes, err := json.Marshal(abiData)
 	if err != nil {
 		fmt.Printf("Error marshalling ABI data to JSON bytes: %s", err)
@@ -235,6 +178,80 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 	return string(jsonBytes)
 }
 
-func fromSelector(selector string, _abiPath string, abiUrl string) string {
-	return ""
+func fromSelector(isErrorSelector bool, selector string, _abiPath string, abiUrl string) string {
+	if _abiPath == "" && abiUrl == "" {
+		panic(fmt.Errorf("abiPath and url cannot both be empty"))
+	}
+	var abiJsonStr string
+	var abiPath string
+
+	if _abiPath != "" {
+		err := validateUriExtension(_abiPath)
+		if err != nil {
+			panic(err)
+		}
+
+		abiPath = _abiPath
+		fileBytes, err := os.ReadFile(abiPath)
+		if err != nil {
+			fmt.Println("Error reading file")
+			panic(err)
+		}
+
+		abiJsonStr = bytesToJsonString(fileBytes, abiPath)
+	} else { // reading from URL instead of file
+		err := validateUriExtension(abiUrl)
+		if err != nil {
+			panic(err)
+		}
+
+		abiPath = abiUrl
+		resp, err := http.Get(abiPath)
+		if err != nil {
+			fmt.Printf("Error fetching ABI file from url %s", abiPath)
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Error reading file from http response")
+			panic(err)
+		}
+
+		abiJsonStr = bytesToJsonString(b, abiPath)
+	}
+
+	parsedAbi, err := abi.JSON(strings.NewReader(abiJsonStr))
+	if err != nil { // @zeuslawyer TODO check if this is the correct way to check for this error
+		fmt.Printf("Error parsing ABI from : %s. \nABI provided must be an array.\n", abiPath)
+		panic(err)
+	}
+
+	selectorBytes := hexutil.MustDecode(selector)
+
+	var sig string
+	if isErrorSelector {
+		var first4Bytes [4]byte
+		copy(first4Bytes[:], selectorBytes[:4])
+		errorSig, e := parsedAbi.ErrorByID(first4Bytes)
+		if e != nil {
+			panic(fmt.Errorf("Error looking up error signature by its selector: %s", e))
+		}
+		if errorSig == nil {
+			panic(fmt.Errorf("Error signature for selector %s not found in file at %s", selector, _abiPath))
+		}
+		sig = errorSig.Sig
+	} else {
+		methodSig, e := parsedAbi.MethodById(selectorBytes)
+		if e != nil {
+			panic(fmt.Errorf("Error looking up method signature by its selector: %s", e))
+		}
+		if methodSig == nil {
+			panic(fmt.Errorf("Method signature for selector %s not found in file at %s", selector, _abiPath))
+		}
+		sig = methodSig.Sig
+	}
+
+	return sig
 }

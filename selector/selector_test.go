@@ -178,6 +178,8 @@ func TestFuncFromSelector(t *testing.T) {
 	}
 }
 
+// TODO @zeuslawyer do TestErrorFromSelector()
+
 func TestEventFromTopicHash(t *testing.T) {
 	tests := []struct {
 		name      string

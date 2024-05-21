@@ -59,11 +59,29 @@ func main() {
 			},
 		},
 		{
-			Name:    "decodeSelector",
+			Name:    "decodeMethodSelector",
 			Aliases: []string{"methodsig"},
 			Usage:   "Look through the provided ABI to find a function signature that matches the given function selector",
 			Action: func(cliCtx *cli.Context) error {
 				fmt.Printf("%v\n", selector.SigFromSelector(
+					cliCtx.String("selector"),
+					cliCtx.String("path"),
+					cliCtx.String("url")),
+				)
+				return nil
+			},
+			Flags: []cli.Flag{
+				flags.CommandFlags["selector"],
+				flags.CommandFlags["path"],
+				flags.CommandFlags["url"],
+			},
+		},
+		{
+			Name:    "decodeErrorSelector",
+			Aliases: []string{"errorSig"},
+			Usage:   "Look through the provided ABI to find the error signature that matches the given error selector",
+			Action: func(cliCtx *cli.Context) error {
+				fmt.Printf("%v\n", selector.ErrorSigFromSelector(
 					cliCtx.String("selector"),
 					cliCtx.String("path"),
 					cliCtx.String("url")),

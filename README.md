@@ -27,31 +27,35 @@
    <b>Note: </b> The signature must be enclosed in single or double quotes.
    <br>
 
-6 Decode a selector (4 bytes) into the function signature, given a valid ABI file. `hextool decodeSelector --selector 0xa9059cbb --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`
+6 Decode a method's selector (4 bytes) into the function signature, given a valid ABI file. `hextool decodeMethodSelector --selector 0xa9059cbb --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`>
 
-7. Decode the topic hash (on block explorers this shows up as `topic0`). The full 32-byte hexstring is needed, as is a valid ABI. `hextool decodeEvent --topic 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`
+> should return transfer(address,uint256)
 
-8. Decode abi-encoded hex input with `hextool abi.decode --hex <<abi encoded hex>> --types "<<comma separated types in a string>>"`.   
-Example:
+7 Decode an error's selector (4 bytes) into the error's signature, given a valid ABI file. `hextool decodeErrorSelector  --selector 0x07da6ee6 --url https://raw.githubusercontent.com/Cyfrin/ccip-contracts/main/contracts-ccip/abi/v0.8/Router.json`
+
+> should return InsufficientFeeTokenAmount()
+
+8. Decode the topic hash (on block explorers this shows up as `topic0`). The full 32-byte hexstring is needed, as is a valid ABI. `hextool decodeEvent --topic 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef --url "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"`
+
+9. Decode abi-encoded hex input with `hextool abi.decode --hex <<abi encoded hex>> --types "<<comma separated types in a string>>"`.  
+   Example:
+
 ```
 hextool abi.decode --hex "00000000000000000000000000000000000000000000000000000000000003e90000000000000000000000000000000000000000000000000000000000000060000000000000000000000000208aa722aca42399eac5192ee778e4d42f4e5de300000000000000000000000000000000000000000000000000000000000000057a7562696e000000000000000000000000000000000000000000000000000000" --types 'uint16,string,address'
 ```
 
-Produces `[1001 zubin 0x208AA722Aca42399eaC5192EE778e4D42f4E5De3]`. 
+Produces `[1001 zubin 0x208AA722Aca42399eaC5192EE778e4D42f4E5De3]`.
 
+10. Abi-encode data (with their corresponding values). `hextool abi.encode --types '<<comma separated types in a string>>' --values '<<comma separated data string>>'`
 
-9. Abi-encode data (with their corresponding values). `hextool abi.encode --types '<<comma separated types in a string>>' --values '<<comma separated data string>>'`
-
-eg:   `hextool abi.encode --types 'uint64,string,address' --values '1981,bananas dude!,0x208AA722Aca42399eaC5192EE778e4D42f4E5De3'` 
+eg: `hextool abi.encode --types 'uint64,string,address' --values '1981,bananas dude!,0x208AA722Aca42399eaC5192EE778e4D42f4E5De3'`
 will produce: `0x00000000000000000000000000000000000000000000000000000000000007bd0000000000000000000000000000000000000000000000000000000000000060000000000000000000000000208aa722aca42399eac5192ee778e4d42f4e5de3000000000000000000000000000000000000000000000000000000000000000d62616e616e617320647564652100000000000000000000000000000000000000`
-
 
 Try and reverse that with `hextool abi.decode`!
 
 ## Other projects for research
+
 https://github.com/umbracle/ethgo/tree/main //wrapper pkg
 https://github.com/defiweb/go-eth // wrapper pkg
 
 https://gist.github.com/crazygit/9279a3b26461d7cb03e807a6362ec855 // decoding tx logs, and reading contract ABI from etherscan
-
-
