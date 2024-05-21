@@ -8,9 +8,9 @@ import (
 
 const (
 	// "Raw" Github Gists
-	badJsonUrl  = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/54b14fbfb686e5605e79a4a950031ecaff279d4a/bad-data-erc20.json"
-	goodJsonUrl = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"
-	badUrlExt   = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/54b14fbfb686e5605e79a4a950031ecaff279d4a/bad-data-erc20.NotJson"
+	goodJsonUrl_arrayAbi = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/54b14fbfb686e5605e79a4a950031ecaff279d4a/bad-data-erc20.json"
+	goodJsonUrl          = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/f096531942e922cb3f1d5daa2132f0e476356ced/good-data-erc20.json"
+	badUrlExt            = "https://gist.githubusercontent.com/zeuslawyer/ecec03ff3f50311e510c201de4c076d5/raw/54b14fbfb686e5605e79a4a950031ecaff279d4a/bad-data-erc20.NotJson"
 )
 
 func TestSelectorFromSig(t *testing.T) {
@@ -77,15 +77,27 @@ func TestFuncFromSelector(t *testing.T) {
 		want     string // Hex string
 	}{
 		{
-			name:     "abi from file",
+			name:     "abi from file - abi object",
 			selector: "0xa9059cbb",
 			path:     path.Join("testdata", "erc20.abi.json"),
 			want:     "transfer(address,uint256)",
 		},
 		{
-			name:     "abi from url",
+			name:     "abi from file - abi array",
+			selector: "0xa9059cbb",
+			path:     path.Join("testdata", "erc20.abi-array.json"),
+			want:     "transfer(address,uint256)",
+		},
+		{
+			name:     "From URL: abi object",
 			selector: "0xa9059cbb",
 			url:      goodJsonUrl,
+			want:     "transfer(address,uint256)",
+		},
+		{
+			name:     "from URL: abi array",
+			selector: "0xa9059cbb",
+			url:      goodJsonUrl_arrayAbi,
 			want:     "transfer(address,uint256)",
 		},
 		{
@@ -95,19 +107,13 @@ func TestFuncFromSelector(t *testing.T) {
 			url:      goodJsonUrl,
 			want:     "transfer(address,uint256)",
 		},
+
 		{
-			name:     "file - invalid JSON",
+			name:     "file - object missing abi property",
 			selector: "0xa9059cbb",
 			path:     path.Join("testdata", "erc20.bad-abi.json"),
 			panics:   true,
-			want:     "error parsing JSON from file",
-		},
-		{
-			name:     "URL - invalid JSON",
-			selector: "0xa9059cbb",
-			url:      badJsonUrl,
-			panics:   true,
-			want:     "error parsing JSON from file",
+			want:     "Property 'abi' not found",
 		},
 		{
 			name:     "file - not .json extension",

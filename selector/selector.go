@@ -211,15 +211,13 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 		fmt.Println("Data is an object")
 		d, ok := v["abi"]
 		if !ok {
-			fmt.Printf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri)
-			break
+			panic(fmt.Errorf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri))
 		}
 
 		// check that the abi property is an array
 		_, ok = d.([]any)
 		if !ok {
 			fmt.Printf("Value of property 'abi' in supplied file is not an array")
-			break
 		}
 		abiData = d
 	default:
@@ -237,6 +235,6 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 	return string(jsonBytes)
 }
 
-func fromSelector(selector string, _abiPath string, abiUrl string) {
-
+func fromSelector(selector string, _abiPath string, abiUrl string) string {
+	return ""
 }
