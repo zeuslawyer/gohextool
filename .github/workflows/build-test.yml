@@ -3,10 +3,10 @@ name: Go Tests
 on:
   # Run tests for pull requests to the main branch
   pull_request:
-    branches: [ main ]
-  # Run tests on pushes to the development branch (urfave-cli)
+    branches: [main]
+  # Run tests on pushes to the development branch
   push:
-    branches: [ develop ]
+    branches: [develop]
 
 jobs:
   test:
@@ -35,6 +35,5 @@ jobs:
 
       # Run tests only if build is successful (fail-fast)
       - name: Run tests
+        if: success() # Only run if previous step succeeded
         run: go test -v ./...
-        if: success()  # Only run if previous step succeeded
-
