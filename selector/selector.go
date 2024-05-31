@@ -149,11 +149,11 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 	var abiData any
 	switch v := data.(type) {
 	case []interface{}:
-		fmt.Println("Data is an array\n")
+		fmt.Println("Data is an array")
 		// You can work with v as a []interface{}
 		abiData = v
 	case map[string]interface{}:
-		fmt.Println("Data is an object\n")
+		fmt.Println("Data is an object")
 		d, ok := v["abi"]
 		if !ok {
 			panic(fmt.Errorf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri))
