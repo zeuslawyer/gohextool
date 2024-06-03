@@ -190,7 +190,7 @@ func TestEventFromTopicHash(t *testing.T) {
 		want      string // Hex string
 	}{
 		// TODO @zeuslawyer do remaining test cases
-		// TODO should can the abi decoding function be reused to decode topic hash?
+		// TODO should can the abiDecode() function be reused to decode topic hash?
 		{
 			name:      "Event Signature from ABI file",
 			topicHash: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925", // "0x8c5be1e5",
