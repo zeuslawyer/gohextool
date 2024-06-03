@@ -111,7 +111,7 @@ func TestFuncFromSelector(t *testing.T) {
 		{
 			name:     "file - object missing abi property",
 			selector: "0xa9059cbb",
-			path:     path.Join("testdata", "erc20.bad-abi.json"),
+			path:     path.Join("testdata", "bad-abi.json"),
 			panics:   true,
 			want:     "Property 'abi' not found",
 		},
@@ -179,6 +179,63 @@ func TestFuncFromSelector(t *testing.T) {
 }
 
 // TODO @zeuslawyer do TestErrorFromSelector()
+func TestErrorSigFromSelector(t *testing.T) {
+	tests := []struct {
+		name     string
+		selector string
+		path     string
+		url      string
+		panics   bool
+		want     string // Hex string
+	}{
+		{
+			name:     "Happy Path - error with single param",
+			selector: "0xae236d9c",
+			path:     path.Join("testdata", "errors.abi.json"),
+			want:     "UnsupportedDestinationChain(uint64)",
+		},
+		{
+			name:     "Happy Path - error with no param",
+			selector: "0xd0d25976",
+			path:     path.Join("testdata", "errors.abi.json"),
+			want:     "SenderNotAllowed(address)",
+		},
+		{
+			name:     "Error Not In Abi - Should Panic",
+			selector: "0x1841b4e1",
+			path:     path.Join("testdata", "errors.abi.json"),
+			panics:   true,
+			want:     "no error with id",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.panics {
+				defer func() {
+					if r := recover(); r != nil {
+						// Check if the panic value is as expected
+						errorString := r.(error).Error()
+						wantErrorSubString := tc.want
+						if strings.Contains(errorString, wantErrorSubString) == false {
+							t.Errorf("Expected panic message to contain: %s, got: %v", wantErrorSubString, errorString)
+						}
+					} else {
+						// The function did not panic as expected
+						t.Error("Expected the function to panic, but it did not")
+					}
+				}()
+
+				ErrorSigFromSelector(tc.selector, tc.path, tc.url)
+			} else {
+				got := ErrorSigFromSelector(tc.selector, tc.path, tc.url)
+				if got != tc.want {
+					t.Errorf("ErrorSigFromSelector(%s) = %s, want %s", tc.selector, got, tc.want)
+				}
+			}
+		})
+	}
+}
 
 func TestEventFromTopicHash(t *testing.T) {
 	tests := []struct {
