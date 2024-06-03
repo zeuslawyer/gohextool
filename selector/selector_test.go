@@ -1,6 +1,7 @@
 package selector
 
 import (
+	"fmt"
 	"path"
 	"strings"
 	"testing"
@@ -130,6 +131,13 @@ func TestFuncFromSelector(t *testing.T) {
 			want:     "invalid file/url extension",
 		},
 		{
+			name:     "URL - HTTP GET error",
+			selector: "0xa9059cbb",
+			url:      "https://fake.json",
+			panics:   true,
+			want:     fmt.Sprintf("Get \"%s\"", "https://fake.json"),
+		},
+		{
 			name:     "non existent selector",
 			selector: "0xa3063fba",
 			path:     path.Join("testdata", "erc20.abi.json"),
@@ -178,7 +186,6 @@ func TestFuncFromSelector(t *testing.T) {
 	}
 }
 
-// TODO @zeuslawyer do TestErrorFromSelector()
 func TestErrorSigFromSelector(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -247,7 +254,7 @@ func TestEventFromTopicHash(t *testing.T) {
 		want      string // Hex string
 	}{
 		// TODO @zeuslawyer do remaining test cases
-		// TODO should can the abiDecode() function be reused to decode topic hash?
+		// TODO  can the abiDecode() function be reused to decode topic hash?
 		{
 			name:      "Event Signature from ABI file",
 			topicHash: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925", // "0x8c5be1e5",
