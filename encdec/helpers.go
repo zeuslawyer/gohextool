@@ -22,6 +22,10 @@ func dataTypesToAbiArgs(dataTypes string) abi.Arguments {
 			fmt.Printf("...type %q converted to uint256\n", _typeName)
 			_typeName = "uint256"
 		}
+		if _typeName == "int" {
+			fmt.Printf("...type %q converted to int256\n", _typeName)
+			_typeName = "int256"
+		}
 		abiType, err := abi.NewType(_typeName, "", nil)
 		if err != nil {
 			panic(fmt.Sprintf("Error creating Abi.Type for %s: %v", _typeName, err))
