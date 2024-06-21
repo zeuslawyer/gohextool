@@ -139,7 +139,7 @@ func validateUriExtension(uri string) error {
 }
 
 func bytesToJsonString(b []byte, abiSourceUri string) string {
-	var data any // TODO: zeuslawyer refactor to handle array or map. Eg of array https://raw.githubusercontent.com/Cyfrin/ccip-contracts/main/contracts-ccip/abi/v0.8/Router.json
+	var data any
 
 	if err := json.Unmarshal(b, &data); err != nil {
 		panic(fmt.Errorf("error parsing JSON from file at %s : %s", abiSourceUri, err))
@@ -148,7 +148,7 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 	// Check if the data is a slice (array) or a map (object)
 	var abiData any
 	switch v := data.(type) {
-	case []interface{}:
+	case []any:
 		fmt.Println("Data is an array")
 		// You can work with v as a []interface{}
 		abiData = v
@@ -159,7 +159,7 @@ func bytesToJsonString(b []byte, abiSourceUri string) string {
 			panic(fmt.Errorf("Property 'abi' not found in unmarshalled JSON data. Check the file at %s", abiSourceUri))
 		}
 
-		// check that the abi property is an array
+		// check that the "abi" property is an array
 		_, ok = d.([]any)
 		if !ok {
 			fmt.Printf("Value of property 'abi' in supplied file is not an array")
