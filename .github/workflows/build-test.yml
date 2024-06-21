@@ -1,4 +1,4 @@
-name: Go Tests
+name: Go Build & Test
 
 on:
   # Run tests for pull requests to the main branch
@@ -6,7 +6,7 @@ on:
     branches: [main]
   # Run tests on pushes to the development branch
   push:
-    branches: [develop]
+    branches: [main, develop]
 
 jobs:
   test:
