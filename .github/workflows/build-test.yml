@@ -1,12 +1,13 @@
 name: Go Build & Test
 
 on:
-  # Run tests for pull requests to the main branch
+  # Run tests for pull requests to the main or develop branch
   pull_request:
-    branches: [main]
-  # Run tests on pushes to the development branch
-  push:
     branches: [main, develop]
+  # Run tests on pushes to all branches
+  push:
+    branches: ["**"]
+  workflow_dispatch:
 
 jobs:
   test:
