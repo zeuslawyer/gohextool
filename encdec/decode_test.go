@@ -3,7 +3,6 @@ package encdec
 import (
 	"math/big"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -11,6 +10,11 @@ import (
 )
 
 func TestDecodeHexToBigInt(t *testing.T) {
+	wantedBigInt, ok := new(big.Int).SetString("139000000000000000000", 10)
+	if !ok {
+		t.Fatalf("Cannot set big.Int from string %q", "139000000000000000000")
+	}
+
 	tests := []struct {
 		name     string
 		inputHex string
@@ -39,8 +43,13 @@ func TestDecodeHexToBigInt(t *testing.T) {
 		},
 		{
 			name:     "NegativeNum",
-			inputHex: "0x" + strconv.FormatInt(-1981, 16), // "0x-7bd"
+			inputHex: "0x-7bd", // "0x" + strconv.FormatInt(-1981, 16), // "0x-7bd"
 			want:     new(big.Int).SetInt64(-1981),
+		},
+		{
+			name:     "BigInt",
+			inputHex: "0x078903338be34c0000",
+			want:     wantedBigInt,
 		},
 	}
 	for _, tc := range tests {
@@ -106,12 +115,24 @@ func TestDecodeHexToString(t *testing.T) {
 }
 
 func TestAbiDecode(t *testing.T) {
+	bigNegativeNum, ok := new(big.Int).SetString("-139000000000000000000", 10)
+	if !ok {
+		t.Fatalf("Cannot set big.Int from string %q", "-139000000000000000000")
+
+	}
 	tests := []struct {
 		name      string
 		inputHex  string
 		dataTypes string
 		want      []any
 	}{
+		// see https://adibas03.github.io/online-ethereum-abi-encoder-decoder/#/decode to get decoded scalar values
+		{
+			name:      "HappyPath#1-single negative int",
+			inputHex:  "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff843",
+			dataTypes: "int",
+			want:      []any{big.NewInt(-1981)},
+		},
 		{
 			name:      "HappyPath#1-0x prefix",
 			inputHex:  "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000a676f2d686578746f6f6c00000000000000000000000000000000000000000000",
@@ -120,9 +141,9 @@ func TestAbiDecode(t *testing.T) {
 		},
 		{
 			name:      "HappyPath#2-multiple scalar types",
-			inputHex:  "0x000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000166f4b60000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000d68617070792074657374696e6700000000000000000000000000000000000000",
-			dataTypes: "uint, uint256, string",
-			want:      []any{big.NewInt(10), big.NewInt(23524534), "happy testing"},
+			inputHex:  "0x000000000000000000000000000000000000000000000000000000000000000afffffffffffffffffffffffffffffffffffffffffffffff876fccc741cb400000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000d68617070792074657374696e6700000000000000000000000000000000000000",
+			dataTypes: "uint, int256, string",
+			want:      []any{big.NewInt(10), bigNegativeNum, "happy testing"},
 		},
 		{
 			name:      "HappyPath#3-Prefix Gets Added",
