@@ -3,7 +3,6 @@ package encdec
 import (
 	"math/big"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -11,6 +10,11 @@ import (
 )
 
 func TestDecodeHexToBigInt(t *testing.T) {
+	wantedBigInt, ok := new(big.Int).SetString("139000000000000000000", 10)
+	if !ok {
+		t.Fatalf("Cannot set big.Int from string %q", "139000000000000000000")
+	}
+
 	tests := []struct {
 		name     string
 		inputHex string
@@ -39,8 +43,13 @@ func TestDecodeHexToBigInt(t *testing.T) {
 		},
 		{
 			name:     "NegativeNum",
-			inputHex: "0x" + strconv.FormatInt(-1981, 16), // "0x-7bd"
+			inputHex: "0x-7bd", // "0x" + strconv.FormatInt(-1981, 16), // "0x-7bd"
 			want:     new(big.Int).SetInt64(-1981),
+		},
+		{
+			name:     "BigInt",
+			inputHex: "0x078903338be34c0000",
+			want:     wantedBigInt,
 		},
 	}
 	for _, tc := range tests {
