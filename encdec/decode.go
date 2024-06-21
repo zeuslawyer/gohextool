@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -21,10 +20,10 @@ func DecodeHexToString(hex string) string {
 }
 
 /*
- * Decodes `hex` to a Big Int64. `hex` must be prexifed with 0x.
+ * Decodes `hex` to a Big Int. `hex` must be prexifed with 0x.
  */
 func DecodeHexToBigInt(hex string) *big.Int {
-	if hex == "0x" || len(hex) == 0 {
+	if hex == "0x" || hex == "" {
 		panic(fmt.Sprintf("%q provided as --hex input", hex))
 	}
 
@@ -33,11 +32,8 @@ func DecodeHexToBigInt(hex string) *big.Int {
 	}
 
 	hexWithoutPrefix := hex[2:]
-	num, err := strconv.ParseInt(hexWithoutPrefix, 16, 64)
-	if err != nil {
-		panic(err)
-	}
-	return new(big.Int).SetInt64(num)
+	bi, _ := new(big.Int).SetString(hexWithoutPrefix, 16)
+	return bi
 }
 
 /*

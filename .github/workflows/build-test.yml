@@ -6,7 +6,7 @@ on:
     branches: [main]
   # Run tests on pushes to the development branch
   push:
-    branches: [develop]
+    branches: [main, develop]
 
 jobs:
   test:
