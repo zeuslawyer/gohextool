@@ -48,28 +48,26 @@ func AbiEncode(inputValuesStr string, dataTypesStr string) (res string) {
 
 			// 256bit uints need special treatment due to size.
 			// TODO zeuslawyer add int and int256
-		case "uint", "uint256":
+		case "uint", "uint128", "uint256", "int", "int128", "int256":
 			typedValue, ok := new(big.Int).SetString(inpValue, 10)
 			if !ok {
 				panic(fmt.Sprintf("Error converting %q  of type %s to big.Int", inpValue, _ty))
 			}
 			typedInputValuesSlice[idx] = typedValue
+
 		case "uint8", "uint16", "uint32", "uint64":
 			var bitsize int
-			if _ty == "uint" {
-				bitsize = 256
-			} else {
-				// convert the last two characters into int and assign it to bitsize
-				bsize, err := strconv.Atoi(_ty[4:])
-				if err != nil {
-					panic(fmt.Sprintf("Unsupported bitsize %q in %s", bsize, _ty))
-				}
-				bitsize = bsize
+
+			// convert the last two characters into int and assign it to bitsize
+			bsize, err := strconv.Atoi(_ty[4:])
+			if err != nil {
+				panic(fmt.Sprintf("Unsupported bitsize %q in %s", bsize, _ty))
 			}
+			bitsize = bsize
 
 			typedValue, err := strconv.ParseUint(inpValue, 10, bitsize)
 			if err != nil {
-				panic(fmt.Sprintf("Error converting %q  of type %s to uint%d", inpValue, _ty, bitsize))
+				panic(fmt.Sprintf("Error converting %q  of type %s to uint%d:  %s", inpValue, _ty, bitsize, err))
 			}
 			if bitsize == 8 {
 				typedInputValuesSlice[idx] = uint8(typedValue)
@@ -85,16 +83,13 @@ func AbiEncode(inputValuesStr string, dataTypesStr string) (res string) {
 			}
 		case "int8", "int16", "int32", "int64":
 			var bitsize int
-			if _ty == "uint" {
-				bitsize = 256
-			} else {
-				// convert the last two characters into int and assign it to bitsize
-				bsize, err := strconv.Atoi(_ty[3:])
-				if err != nil {
-					panic(fmt.Sprintf("Unsupported bitsize %q in %s", bsize, _ty))
-				}
-				bitsize = bsize
+
+			// convert the last two characters into int and assign it to bitsize
+			bsize, err := strconv.Atoi(_ty[3:])
+			if err != nil {
+				panic(fmt.Sprintf("Unsupported bitsize %q in %s", bsize, _ty))
 			}
+			bitsize = bsize
 
 			typedValue, err := strconv.ParseInt(inpValue, 10, bitsize)
 			if err != nil {
@@ -112,6 +107,7 @@ func AbiEncode(inputValuesStr string, dataTypesStr string) (res string) {
 			if bitsize == 64 {
 				typedInputValuesSlice[idx] = int64(typedValue)
 			}
+
 		default:
 			panic(fmt.Sprintf("Unsupported type %q", _ty))
 		}
