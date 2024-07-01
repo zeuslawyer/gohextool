@@ -56,9 +56,6 @@ func AbiEncode(inputValuesStr string, dataTypesStr string) (res string) {
 			typedInputValuesSlice[idx] = typedValue
 		case "uint8", "uint16", "uint32", "uint64":
 			var bitsize int
-			if _ty == "uint8" {
-				bitsize = 8
-			}
 			if _ty == "uint" {
 				bitsize = 256
 			} else {
@@ -88,9 +85,6 @@ func AbiEncode(inputValuesStr string, dataTypesStr string) (res string) {
 			}
 		case "int8", "int16", "int32", "int64":
 			var bitsize int
-			if _ty == "uint8" {
-				bitsize = 8
-			}
 			if _ty == "uint" {
 				bitsize = 256
 			} else {
