@@ -46,8 +46,7 @@ func AbiEncode(inputValuesStr string, dataTypesStr string) (res string) {
 		case "address":
 			typedInputValuesSlice[idx] = common.HexToAddress(inputValuesSlice[idx])
 
-			// 256bit uints need special treatment due to size.
-			// TODO zeuslawyer add int and int256
+		// ints and  uints greater than 64 bits need special treatment using BigInt.
 		case "uint", "uint128", "uint256", "int", "int128", "int256":
 			typedValue, ok := new(big.Int).SetString(inpValue, 10)
 			if !ok {
