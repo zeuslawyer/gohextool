@@ -18,54 +18,55 @@ import (
     `dataTypes` is a comma-separated string of types. Eg: "string, uint, bool, uint".
   - The sequence of types in `dataTypes` must match the sequence of values in `input`.
 */
-func AbiEncode(inputValues string, dataTypes string) (res string) {
-	if len(inputValues) == 0 {
+func AbiEncode(inputValuesStr string, dataTypesStr string) (res string) {
+	if len(inputValuesStr) == 0 {
 		res = "0x"
 		return res
 	}
 
 	// Split  each input into a slice of string values
-	inputAsSlice := strings.Split(inputValues, ",")
-	typesAsSlice := strings.Split(dataTypes, ",")
-	if len(inputAsSlice) != len(typesAsSlice) {
-		panic(fmt.Sprintf("Number of input values does not match number of types - %d inputs to  %d types", len(inputAsSlice), len(typesAsSlice)))
+	inputValuesSlice := strings.Split(inputValuesStr, ",")
+	dataTypesSlice := strings.Split(dataTypesStr, ",")
+	if len(inputValuesSlice) != len(dataTypesSlice) {
+		panic(fmt.Sprintf("Number of input values does not match number of types - %d inputs to  %d types", len(inputValuesSlice), len(dataTypesSlice)))
 
 	}
 
 	// convert strings to the appropriate types
 	// TODO zubin resume here. Add other types. Complete the tests.
-	typedInputValuesSlice := make([]any, len(typesAsSlice))
-	for idx, ty := range typesAsSlice {
+	typedInputValuesSlice := make([]any, len(dataTypesSlice))
+
+	for idx, ty := range dataTypesSlice {
 		_ty := strings.TrimSpace(ty)
-		inp := inputAsSlice[idx]
+		inpValue := inputValuesSlice[idx]
 
 		switch _ty {
 		case "string":
-			typedInputValuesSlice[idx] = inputAsSlice[idx]
+			typedInputValuesSlice[idx] = inputValuesSlice[idx]
 		case "address":
-			typedInputValuesSlice[idx] = common.HexToAddress(inputAsSlice[idx])
-		case "uint", "uint256":
-			typedValue, ok := new(big.Int).SetString(inp, 10)
+			typedInputValuesSlice[idx] = common.HexToAddress(inputValuesSlice[idx])
+
+		// ints and  uints greater than 64 bits need special treatment using BigInt.
+		case "uint", "uint128", "uint256", "int", "int128", "int256":
+			typedValue, ok := new(big.Int).SetString(inpValue, 10)
 			if !ok {
-				panic(fmt.Sprintf("Error converting %q  of type %s to big.Int", inp, _ty))
+				panic(fmt.Sprintf("Error converting %q  of type %s to big.Int", inpValue, _ty))
 			}
 			typedInputValuesSlice[idx] = typedValue
+
 		case "uint8", "uint16", "uint32", "uint64":
 			var bitsize int
-			if _ty == "uint8" {
-				bitsize = 8
-			} else {
-				// convert the last two characters into int and assign it to bitsize
-				bsize, err := strconv.Atoi(_ty[4:])
-				if err != nil {
-					panic(fmt.Sprintf("Unsupported bitsize %q in %s", bsize, _ty))
-				}
-				bitsize = bsize
-			}
 
-			typedValue, err := strconv.ParseUint(inp, 10, bitsize)
+			// convert the last two characters into int and assign it to bitsize
+			bsize, err := strconv.Atoi(_ty[4:])
 			if err != nil {
-				panic(fmt.Sprintf("Error converting %q  of type %s to big.Int", inp, _ty))
+				panic(fmt.Sprintf("Unsupported bitsize %q in %s", bsize, _ty))
+			}
+			bitsize = bsize
+
+			typedValue, err := strconv.ParseUint(inpValue, 10, bitsize)
+			if err != nil {
+				panic(fmt.Sprintf("Error converting %q  of type %s to uint%d:  %s", inpValue, _ty, bitsize, err))
 			}
 			if bitsize == 8 {
 				typedInputValuesSlice[idx] = uint8(typedValue)
@@ -79,13 +80,40 @@ func AbiEncode(inputValues string, dataTypes string) (res string) {
 			if bitsize == 64 {
 				typedInputValuesSlice[idx] = uint64(typedValue)
 			}
+		case "int8", "int16", "int32", "int64":
+			var bitsize int
+
+			// convert the last two characters into int and assign it to bitsize
+			bsize, err := strconv.Atoi(_ty[3:])
+			if err != nil {
+				panic(fmt.Sprintf("Unsupported bitsize %q in %s", bsize, _ty))
+			}
+			bitsize = bsize
+
+			typedValue, err := strconv.ParseInt(inpValue, 10, bitsize)
+			if err != nil {
+				panic(fmt.Sprintf("Error converting %q  of type %s to int%d", inpValue, _ty, bitsize))
+			}
+			if bitsize == 8 {
+				typedInputValuesSlice[idx] = int8(typedValue)
+			}
+			if bitsize == 16 {
+				typedInputValuesSlice[idx] = int16(typedValue)
+			}
+			if bitsize == 32 {
+				typedInputValuesSlice[idx] = int32(typedValue)
+			}
+			if bitsize == 64 {
+				typedInputValuesSlice[idx] = int64(typedValue)
+			}
+
 		default:
 			panic(fmt.Sprintf("Unsupported type %q", _ty))
 		}
 
 	}
 
-	var args abi.Arguments = dataTypesToAbiArgs(dataTypes)
+	var args abi.Arguments = dataTypesToAbiArgs(dataTypesStr)
 	values, err := args.PackValues(typedInputValuesSlice)
 	if err != nil {
 		panic(fmt.Sprintf("Error packing input values: %v", err))
